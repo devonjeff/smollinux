@@ -27,7 +27,7 @@ echo ""
 
 
 
-build() {
+build_initramfs() {
     # Ensure all required directories exist
     echo -e "${GREEN}Creating directories${NC}"
     mkdir -p "$INITRAMFS_DIR" "$SOURCES_DIR" "$SOURCES_BUILD_DIR" "$SOURCES_INSTALL_DIR" "$BUILD_DIR" "$TEMP_DIR"
@@ -226,14 +226,25 @@ clean() {
 
 # Main command dispatcher
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 [build|clean|help]"
+  echo "Usage: $0 [build rootfs|build initramfs|clean|help]"
   exit 1
 fi
 
 # Process commands
-case $1 in
+case "$1" in
   build)
-    build
+    if [ "$2" = "rootfs" ]; then
+      echo -e "${GREEN}Building rootfs...${NC}"
+      build_rootfs
+    elif [ "$2" = "initramfs" ]; then
+      echo -e "${GREEN}Building initramfs...${NC}"
+      build_initramfs
+    else
+      echo -e "${GREEN}Please specify what to build:${NC}"
+      echo "  - '$0 build rootfs' to build the root filesystem"
+      echo "  - '$0 build initramfs' to build the initial RAM filesystem"
+      echo "  - Run '$0 help' for more information"
+    fi
     ;;
     
   clean)
@@ -242,9 +253,11 @@ case $1 in
     
   help)
     echo "Available commands:"
-    echo "  build  - Build the project"
-    echo "  clean  - Clean build artifacts"
-    echo "  help   - Show this help message"
+    echo "  build           - Build the project"
+    echo "  build rootfs    - Build the root filesystem"
+    echo "  build initramfs - Build the initial RAM filesystem"
+    echo "  clean           - Clean build artifacts"
+    echo "  help            - Show this help message"
     ;;
     
   *)
