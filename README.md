@@ -70,7 +70,7 @@ The system is built in reproducible stages:
 
 ## 📜 License
 
-This project is licensed under the ? (see LICENSE).
+This project is licensed under the GNU General Public License v3.0 (see [LICENSE](LICENSE))
 
 ---
 
