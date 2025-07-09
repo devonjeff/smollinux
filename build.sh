@@ -172,8 +172,8 @@ EOF
         done
         
         # /dev
-        mknod -m 600 "$INITRAMFS_DIR/dev/console" c 5 1
-        mknod -m 666 "$INITRAMFS_DIR/dev/null" c 1 3
+        sudo mknod -m 600 "$INITRAMFS_DIR/dev/console" c 5 1
+        sudo mknod -m 666 "$INITRAMFS_DIR/dev/null" c 1 3
 
         echo -e "${GREEN}Initramfs directory structure created successfully.${NC}"
     fi
