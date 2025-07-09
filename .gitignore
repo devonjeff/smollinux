@@ -7,7 +7,6 @@ temp/*
 # Allow .gitkeep files to keep the directories in the repo
 !sources/.gitkeep
 !build/.gitkeep
-!temp/.gitkeep
 
 # Common ignore patterns
 .env
