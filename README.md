@@ -52,8 +52,7 @@ The system is built in reproducible stages:
 1. **The initramfs**
    - Create basic directory structure in $WORKDIR/initramfs (bin, dev, lib64, newroot, proc, sys, usr)
    - Generate the init script that handles early boot process
-   - Set up essential utilities through busybox symlinks
-    (blkid, cat, cut, echo, grep, ls, mkdir, mount, seq, sh, sleep, switch_root)
+   - Set up essential utilities through busybox symlinks (blkid, cat, cut, echo, grep, ls, mkdir, mount, seq, sh, sleep, switch_root)
    - Configure necessary device nodes for system boot:
      - Create console device (character device 5:1) with mode 600
      - Create null device (character device 1:3) with mode 666
