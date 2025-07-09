@@ -171,7 +171,8 @@ EOF
             ln -sf busybox "$INITRAMFS_DIR/bin/$cmd"
         done
         
-        # /dev
+        # Create essential device nodes
+        echo -e "${GREEN}Creating essential device nodes...${NC}"
         sudo mknod -m 600 "$INITRAMFS_DIR/dev/console" c 5 1
         sudo mknod -m 666 "$INITRAMFS_DIR/dev/null" c 1 3
 
