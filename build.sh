@@ -185,7 +185,7 @@ clean() {
     # Handle initramfs directory cleanup
     if [ -d "$INITRAMFS_DIR" ]; then
         if [ "$(ls -A "$INITRAMFS_DIR" 2>/dev/null)" ]; then
-            echo "Removing initramfs files..."
+            echo -e "${GREEN}Removing initramfs files...${NC}"
             rm -rf "$INITRAMFS_DIR"/*
             echo -e "${GREEN}Removing initramfs files completed successfully!${NC}"
         else
