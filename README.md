@@ -37,6 +37,13 @@ The system is built in reproducible stages:
 
 1. **The initramfs**
    - Make directories on $WORKDIR/initramfs
+    ├── bin
+    ├── dev
+    ├── lib64
+    ├── newroot
+    ├── proc
+    ├── sys
+    └── usr
 
 ---
 
