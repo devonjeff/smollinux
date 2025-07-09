@@ -35,8 +35,8 @@
 
 The system is built in reproducible stages:
 
-1. **Example one**
-   - It's an Example!
+1. **The initramfs**
+   - Make directories on $WORKDIR/initramfs
 
 ---
 

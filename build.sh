@@ -41,7 +41,7 @@ build() {
         echo -e "${GREEN}Creating directories inside initramfs folder...${NC}"
         # Create dirs inside initramfs's folder
         mkdir -p "$INITRAMFS_DIR"/{bin,dev,lib64,proc,sys,newroot,usr}
-        echo -e "${GREEN}Directory structure created successfully.${NC}"
+        echo -e "${GREEN}Initramfs directory structure created successfully.${NC}"
     fi
 }
 
