@@ -23,11 +23,25 @@
 - **/initramfs/**  
   - Contains the initial RAM filesystem structure and files
   - This is what loads during early boot before the main system is mounted
+  - Contains the `init` script that handles early boot process
+  - Includes symlinks to BusyBox for essential utilities
 - **/build/**
   - Contains output files
   - Includes system images (rootfs.img), compressed initramfs (initramfs.cpio.gz),
     and other generated files
   - All reproducible build outputs are stored here 
+- **/sources/**
+  - Contains directories for each package or source (eg: /sources/busybox-x.xx.x /sources/glibc-x.xx)
+  - Each package is built, configured from here
+- **/sources/build/**
+  - Build directory for sources that require out-of-tree builds
+  - Example: /sources/build/glibc for packages that need a separate build directory
+- **/sources/install/**
+  - Install directory for packages before final deployment
+  - Files are extracted from here to rootfs or initramfs as needed
+- **/temp/**
+  - Temporary storage for downloaded packages or source tarballs
+  - Cleaned between builds to ensure reproducibility
 
 ---
 
