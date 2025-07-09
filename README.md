@@ -20,9 +20,14 @@
 
 ## 🗂️ Directories Explained
 
-- **/Example**  
-  - Example
-  - blablabla
+- **/initramfs/**  
+  - Contains the initial RAM filesystem structure and files
+  - This is what loads during early boot before the main system is mounted
+- **/build/**
+  - Contains build artifacts and output files
+  - Includes system images (rootfs.img), compressed initramfs (initramfs.cpio.gz),
+    and other generated files
+  - All reproducible build outputs are stored here 
 
 ---
 
