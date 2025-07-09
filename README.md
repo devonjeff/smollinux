@@ -13,8 +13,32 @@
 
 ---
 
-## ⚙️ Project Structure
-(Not decided yet)
+## ⚙️ Directory Structure
+1. Initramfs
+<pre>
+├── bin
+│   ├── blkid -> busybox
+│   ├── cat -> busybox
+│   ├── cut -> busybox
+│   ├── echo -> busybox
+│   ├── grep -> busybox
+│   ├── ls -> busybox
+│   ├── mkdir -> busybox
+│   ├── mount -> busybox
+│   ├── seq -> busybox
+│   ├── sh -> busybox
+│   ├── sleep -> busybox
+│   └── switch_root -> busybox
+├── dev
+│   ├── console
+│   └── null
+├── init
+├── lib64
+├── newroot
+├── proc
+├── sys
+└── usr
+</pre>
 
 ---
 
