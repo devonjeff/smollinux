@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Define colors for output
 GREEN='\033[0;32m'
