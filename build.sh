@@ -17,6 +17,8 @@ SOURCES_BUILD_DIR="$SOURCES_DIR/build"
 SOURCES_INSTALL_DIR="$SOURCES_DIR/install"
 BUILD_DIR="$WORKDIR/build"
 TEMP_DIR="$WORKDIR/temp"
+GLIBC_BUILD_DIR="$SOURCES_BUILD_DIR/glibc"
+GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
 
 
 
@@ -184,68 +186,64 @@ EOF
 
         # Check if there's already a glibc directory in $WORKDIR/sources
         if ls "$WORKDIR/sources" | grep -q "glibc-"; then
-        echo -e "${GREEN}Glibc source already exists in $WORKDIR/sources${NC}"
+            echo -e "${GREEN}Glibc source already exists in $WORKDIR/sources${NC}"
         else
-        echo -e "${YELLOW}Glibc source not found. Downloading latest version...${NC}"
-        
-        # Get the latest version from GNU FTP site
-        LATEST_VERSION=$(wget -qO- 'https://mirror.freedif.org/GNU/libc/' | grep -o 'glibc-[0-9]\+\.[0-9]\+\.tar.gz' | sort -V | tail -n1)
-        echo -e "${BLUE}Glibc latest version is: $LATEST_VERSION${NC}"
+            echo -e "${YELLOW}Glibc source not found. Downloading latest version...${NC}"
+            
+            # Get the latest version from GNU FTP site
+            LATEST_VERSION=$(wget -qO- 'https://mirror.freedif.org/GNU/libc/' | grep -o 'glibc-[0-9]\+\.[0-9]\+\.tar.gz' | sort -V | tail -n1)
+            echo -e "${BLUE}Glibc latest version is: $LATEST_VERSION${NC}"
 
-        # Download the latest version
-        echo -e -n "${BLUE}"
-        wget -q --show-progress "https://mirror.freedif.org/GNU/libc/$LATEST_VERSION" -P "$WORKDIR/temp"
-        echo -e -n "${NC}"
-        
-        # Extract the downloaded archive
-        tar -xf "$WORKDIR/temp/$LATEST_VERSION" -C "$WORKDIR/sources"
-        
-        # Clean up the downloaded archive
-        #rm "/temp/$LATEST_VERSION"
-        
-        echo -e "${GREEN}Downloaded and extracted $LATEST_VERSION to $WORKDIR/sources${NC}"
-
-        # Exit on error
-        set -e
-
-        # Find the glibc source directory
-        GLIBC_SRC=$(find $SOURCES_DIR -maxdepth 1 -name "glibc-*" -type d | sort -V | tail -n1)
-            if [ -z "$GLIBC_SRC" ]; then
-                echo "Error: Could not find glibc source in $SOURCES_DIR"
-                exit 1
-            fi
-
-        echo "Using glibc source: $GLIBC_SRC"
-
-        # Create build and install directories
-        GLIBC_BUILD_DIR="$SOURCES_BUILD_DIR/glibc"
-        GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
-        mkdir -p "$GLIBC_BUILD_DIR"
-        mkdir -p "$GLIBC_INSTALL_DIR"
-        echo "Glibc build directory is: $GLIBC_BUILD_DIR"
-        echo "Glibc install directory is: $GLIBC_INSTALL_DIR"
-
-        # Navigate to build directory
-        cd "$GLIBC_BUILD_DIR"
-        echo "Changing into Glibc build directory: $GLIBC_BUILD_DIR"
-
-        # Configure glibc
-        echo "Configuring glibc..."
-        "$GLIBC_SRC/configure" \
-            --prefix="$GLIBC_INSTALL_DIR" \
-            --disable-werror \
-            --enable-kernel=3.2 \
-            --enable-stack-protector=strong
-
-        # Build glibc
-        echo "Building glibc..."
-        make -j$(nproc)
-
-        # Install glibc
-        echo "Installing glibc..."
-        make install
-
+            # Download the latest version
+            echo -e -n "${BLUE}"
+            wget -q --show-progress "https://mirror.freedif.org/GNU/libc/$LATEST_VERSION" -P "$WORKDIR/temp"
+            echo -e -n "${NC}"
+            
+            # Extract the downloaded archive
+            tar -xf "$WORKDIR/temp/$LATEST_VERSION" -C "$WORKDIR/sources"
+            
+            # Clean up the downloaded archive
+            #rm "/temp/$LATEST_VERSION"
+            
+            echo -e "${GREEN}Downloaded and extracted $LATEST_VERSION to $WORKDIR/sources${NC}"
         fi
+
+    # Exit on error
+    set -e
+
+    # Find the glibc source directory
+    GLIBC_SRC=$(find $SOURCES_DIR -maxdepth 1 -name "glibc-*" -type d | sort -V | tail -n1)
+        if [ -z "$GLIBC_SRC" ]; then
+            echo "Error: Could not find glibc source in $SOURCES_DIR"
+            exit 1
+        fi
+
+    echo "Using glibc source: $GLIBC_SRC"
+
+    # Create build and install directories
+    mkdir -p "$GLIBC_BUILD_DIR"
+    mkdir -p "$GLIBC_INSTALL_DIR"
+    echo "Glibc build directory is: $GLIBC_BUILD_DIR"
+    echo "Glibc install directory is: $GLIBC_INSTALL_DIR"
+
+    # Navigate to build directory
+    cd "$GLIBC_BUILD_DIR"
+    echo "Changing into Glibc build directory: $GLIBC_BUILD_DIR"
+
+    # Configure glibc
+    echo "Configuring glibc..."
+    "$GLIBC_SRC/configure" --prefix=/usr \
+    --enable-obsolete-rpc --disable-werror --with-headers=/usr/include \
+    --enable-kernel=3.2
+
+
+    # Build glibc
+    echo "Building glibc..."
+    make -j16
+
+    # Install glibc
+    echo "Installing glibc..."
+    make install DESTDIR="$GLIBC_INSTALL_DIR"
     fi
 }
 
@@ -255,7 +253,7 @@ clean() {
     # Handle initramfs directory cleanup
     if [ -d "$INITRAMFS_DIR" ]; then
         if [ "$(ls -A "$INITRAMFS_DIR" 2>/dev/null)" ]; then
-            echo -e "${GREEN}Removing initramfs files...${NC}"
+            echo -e "${BLUE}Removing initramfs files...${NC}"
             rm -rf "$INITRAMFS_DIR"/*
             echo -e "${GREEN}Removing initramfs files completed successfully!${NC}"
         else
@@ -292,19 +290,19 @@ clean() {
     fi
 
     # Handle sources directory cleanup
-    if [ -d "$SOURCES_DIR" ]; then
-        if [ "$(ls -A "$SOURCES_DIR" 2>/dev/null)" ]; then
-            echo -e "${BLUE}Cleaning sources directory...${NC}"
-            rm -rf "$SOURCES_DIR"/*
-            echo -e "${GREEN}Cleaning sources directory completed successfully!${NC}"
-        else
-            echo -e "${YELLOW}Sources directory exists but is empty. Nothing to clean.${NC}"
-        fi
-    else
-        echo -e "${RED}Temp directory doesn't exist. Skipping...${NC}"
-    fi
+    #if [ -d "$SOURCES_DIR" ]; then
+        #if [ "$(ls -A "$SOURCES_DIR" 2>/dev/null)" ]; then
+            #echo -e "${BLUE}Cleaning sources directory...${NC}"
+            #rm -rf "$SOURCES_DIR"/*
+            #echo -e "${GREEN}Cleaning sources directory completed successfully!${NC}"
+        #else
+            #echo -e "${YELLOW}Sources directory exists but is empty. Nothing to clean.${NC}"
+        #fi
+    #else
+        #echo -e "${RED}Temp directory doesn't exist. Skipping...${NC}"
+    #fi
 
-    echo -e "${GREEN}Done.${NC}"
+    echo -e "${DARK_GREEN}Done.${NC}"
 }
 
 # Main command dispatcher
