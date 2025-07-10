@@ -13,8 +13,10 @@ jobs:
       - name: Make build.sh executable
         run: chmod +x ./build.sh
 
-      - name: Run build.sh
+      - name: Run build.sh clean
         run: ./build.sh clean
+        
+      - name: Run build.sh build initramfs
         run: ./build.sh build initramfs
 
       - name: Run ls command
