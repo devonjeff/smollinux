@@ -19,6 +19,8 @@ BUILD_DIR="$WORKDIR/build"
 TEMP_DIR="$WORKDIR/temp"
 GLIBC_BUILD_DIR="$SOURCES_BUILD_DIR/glibc"
 GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
+# List of libraries to copy into initramfs
+INITRAMFS_LIBS=("ld-linux-x86-64.so.2" "libc.so.6" "libm.so.6" "libresolv.so.2")
 
 
 
@@ -208,42 +210,66 @@ EOF
             echo -e "${GREEN}Downloaded and extracted $LATEST_VERSION to $WORKDIR/sources${NC}"
         fi
 
-    # Exit on error
-    set -e
+        # Exit on error
+        set -e
 
-    # Find the glibc source directory
-    GLIBC_SRC=$(find $SOURCES_DIR -maxdepth 1 -name "glibc-*" -type d | sort -V | tail -n1)
+        # Find the glibc source directory
+        GLIBC_SRC=$(find $SOURCES_DIR -maxdepth 1 -name "glibc-*" -type d | sort -V | tail -n1)
         if [ -z "$GLIBC_SRC" ]; then
             echo "Error: Could not find glibc source in $SOURCES_DIR"
             exit 1
         fi
 
-    echo "Using glibc source: $GLIBC_SRC"
+        echo "Using glibc source: $GLIBC_SRC"
 
-    # Create build and install directories
-    mkdir -p "$GLIBC_BUILD_DIR"
-    mkdir -p "$GLIBC_INSTALL_DIR"
-    echo "Glibc build directory is: $GLIBC_BUILD_DIR"
-    echo "Glibc install directory is: $GLIBC_INSTALL_DIR"
+        # Create build and install directories
+        mkdir -p "$GLIBC_BUILD_DIR"
+        mkdir -p "$GLIBC_INSTALL_DIR"
+        echo "Glibc build directory is: $GLIBC_BUILD_DIR"
+        echo "Glibc install directory is: $GLIBC_INSTALL_DIR"
 
-    # Navigate to build directory
-    cd "$GLIBC_BUILD_DIR"
-    echo "Changing into Glibc build directory: $GLIBC_BUILD_DIR"
+        # Navigate to build directory
+        cd "$GLIBC_BUILD_DIR"
+        echo "Changing into Glibc build directory: $GLIBC_BUILD_DIR"
 
-    # Configure glibc
-    echo "Configuring glibc..."
-    "$GLIBC_SRC/configure" --prefix=/usr \
-    --enable-obsolete-rpc --disable-werror --with-headers=/usr/include \
-    --enable-kernel=3.2
+        # Check if glibc is already configured
+        if [ -f "$GLIBC_BUILD_DIR/config.status" ]; then
+            echo "Glibc is already configured, skipping configuration step."
+        else
+            # Configure glibc
+            echo "Configuring glibc..."
+            "$GLIBC_SRC/configure" --prefix=/usr \
+            --enable-obsolete-rpc --disable-werror --with-headers=/usr/include \
+            --enable-kernel=3.2
+        fi
 
+        # Check if glibc is already built
+        if [ -f "$GLIBC_BUILD_DIR/libc.so" ]; then
+            echo "Glibc is already built, skipping build step."
+        else
+            # Build glibc
+            echo "Building glibc..."
+            make -j16
+        fi
 
-    # Build glibc
-    echo "Building glibc..."
-    make -j16
+        # Check if glibc is already installed
+        if [ -d "$GLIBC_INSTALL_DIR/usr/lib64" ]; then
+            echo "Glibc is already installed, skipping installation step."
+        else
+            # Install glibc
+            echo "Installing glibc..."
+            make install DESTDIR="$GLIBC_INSTALL_DIR"
+    	fi
 
-    # Install glibc
-    echo "Installing glibc..."
-    make install DESTDIR="$GLIBC_INSTALL_DIR"
+		# Copy each library
+		for lib in "${INITRAMFS_LIBS[@]}"; do
+			if [ -f "$GLIBC_INSTALL_DIR/lib64/$lib" ]; then
+				echo "Copying $lib..."
+				cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib64"
+			else
+				echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
+			fi
+		done
     fi
 }
 
