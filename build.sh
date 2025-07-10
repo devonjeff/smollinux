@@ -184,7 +184,7 @@ EOF
         sudo mknod -m 600 "$INITRAMFS_DIR/dev/console" c 5 1
         sudo mknod -m 666 "$INITRAMFS_DIR/dev/null" c 1 3
 
-        echo -e "${DARK_GREEN}Initramfs directory structure created successfully.${NC}"
+        
 
         # Check if there's already a glibc directory in $WORKDIR/sources
         if ls "$WORKDIR/sources" | grep -q "glibc-"; then
@@ -270,6 +270,39 @@ EOF
 				echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
 			fi
 		done
+
+    	echo -e "${DARK_GREEN}Initramfs directory structure created successfully.${NC}"
+	fi
+	create_initramfs
+}
+
+create_initramfs() {
+    echo "Creating initramfs image..."
+    
+    # Check if INITRAMFS_DIR exists
+    if [ ! -d "$INITRAMFS_DIR" ]; then
+        echo "Error: INITRAMFS_DIR '$INITRAMFS_DIR' does not exist!"
+        return 1
+    fi
+    
+    # Check if BUILD_DIR exists
+    if [ ! -d "$BUILD_DIR" ]; then
+        echo "Error: BUILD_DIR '$BUILD_DIR' does not exist!"
+        return 1
+    fi
+    
+    # Create the initramfs image
+    find "$INITRAMFS_DIR" | cpio -o --format=newc 2>/dev/null | gzip > "$BUILD_DIR/initramfs.cpio.gz"
+    
+    # Check if the operation was successful
+    if [ $? -eq 0 ] && [ -f "$BUILD_DIR/initramfs.cpio.gz" ]; then
+        echo "Successfully created initramfs at $BUILD_DIR/initramfs.cpio.gz"
+        echo "Size: $(du -h "$BUILD_DIR/initramfs.cpio.gz" | cut -f1)"
+        return 0
+    else
+        echo "Error: Failed to create initramfs image!"
+        echo "Please check if the directories exist and you have proper permissions."
+        return 1
     fi
 }
 
