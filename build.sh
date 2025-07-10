@@ -2,7 +2,11 @@
 
 # Define colors for output
 GREEN='\033[0;32m'
+DARK_GREEN='\033[0;32;2m'
 RED='\033[0;31m'
+DARK_RED='\033[0;31;2m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Variables
@@ -176,7 +180,72 @@ EOF
         sudo mknod -m 600 "$INITRAMFS_DIR/dev/console" c 5 1
         sudo mknod -m 666 "$INITRAMFS_DIR/dev/null" c 1 3
 
-        echo -e "${GREEN}Initramfs directory structure created successfully.${NC}"
+        echo -e "${DARK_GREEN}Initramfs directory structure created successfully.${NC}"
+
+        # Check if there's already a glibc directory in $WORKDIR/sources
+        if ls "$WORKDIR/sources" | grep -q "glibc-"; then
+        echo -e "${GREEN}Glibc source already exists in $WORKDIR/sources${NC}"
+        else
+        echo -e "${YELLOW}Glibc source not found. Downloading latest version...${NC}"
+        
+        # Get the latest version from GNU FTP site
+        LATEST_VERSION=$(wget -qO- 'https://mirror.freedif.org/GNU/libc/' | grep -o 'glibc-[0-9]\+\.[0-9]\+\.tar.gz' | sort -V | tail -n1)
+        echo -e "${BLUE}Glibc latest version is: $LATEST_VERSION${NC}"
+
+        # Download the latest version
+        echo -e -n "${BLUE}"
+        wget -q --show-progress "https://mirror.freedif.org/GNU/libc/$LATEST_VERSION" -P "$WORKDIR/temp"
+        echo -e -n "${NC}"
+        
+        # Extract the downloaded archive
+        tar -xf "$WORKDIR/temp/$LATEST_VERSION" -C "$WORKDIR/sources"
+        
+        # Clean up the downloaded archive
+        #rm "/temp/$LATEST_VERSION"
+        
+        echo -e "${GREEN}Downloaded and extracted $LATEST_VERSION to $WORKDIR/sources${NC}"
+
+        # Exit on error
+        set -e
+
+        # Find the glibc source directory
+        GLIBC_SRC=$(find $SOURCES_DIR -maxdepth 1 -name "glibc-*" -type d | sort -V | tail -n1)
+            if [ -z "$GLIBC_SRC" ]; then
+                echo "Error: Could not find glibc source in $SOURCES_DIR"
+                exit 1
+            fi
+
+        echo "Using glibc source: $GLIBC_SRC"
+
+        # Create build and install directories
+        GLIBC_BUILD_DIR="$SOURCES_BUILD_DIR/glibc"
+        GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
+        mkdir -p "$GLIBC_BUILD_DIR"
+        mkdir -p "$GLIBC_INSTALL_DIR"
+        echo "Glibc build directory is: $GLIBC_BUILD_DIR"
+        echo "Glibc install directory is: $GLIBC_INSTALL_DIR"
+
+        # Navigate to build directory
+        cd "$GLIBC_BUILD_DIR"
+        echo "Changing into Glibc build directory: $GLIBC_BUILD_DIR"
+
+        # Configure glibc
+        echo "Configuring glibc..."
+        "$GLIBC_SRC/configure" \
+            --prefix="$GLIBC_INSTALL_DIR" \
+            --disable-werror \
+            --enable-kernel=3.2 \
+            --enable-stack-protector=strong
+
+        # Build glibc
+        echo "Building glibc..."
+        make -j$(nproc)
+
+        # Install glibc
+        echo "Installing glibc..."
+        make install
+
+        fi
     fi
 }
 
@@ -190,7 +259,7 @@ clean() {
             rm -rf "$INITRAMFS_DIR"/*
             echo -e "${GREEN}Removing initramfs files completed successfully!${NC}"
         else
-            echo -e "${RED}Initramfs directory exists but is empty. Nothing to clean.${NC}"
+            echo -e "${YELLOW}Initramfs directory exists but is empty. Nothing to clean.${NC}"
         fi
     else
         echo -e "${RED}Initramfs directory doesn't exist. Skipping...${NC}"
@@ -199,11 +268,11 @@ clean() {
     # Handle build directory cleanup
     if [ -d "$BUILD_DIR" ]; then
         if [ "$(ls -A "$BUILD_DIR" 2>/dev/null)" ]; then
-            echo "Removing build files..."
+            echo -e "${BLUE}Removing build files...${NC}"
             rm -rf "$BUILD_DIR"/*
             echo -e "${GREEN}Removing build files completed successfully!${NC}"
         else
-            echo -e "${RED}Build directory exists but is empty. Nothing to clean.${NC}"
+            echo -e "${YELLOW}Build directory exists but is empty. Nothing to clean.${NC}"
         fi
     else
         echo -e "${RED}Build directory doesn't exist. Skipping...${NC}"
@@ -212,11 +281,24 @@ clean() {
     # Handle temp directory cleanup
     if [ -d "$TEMP_DIR" ]; then
         if [ "$(ls -A "$TEMP_DIR" 2>/dev/null)" ]; then
-            echo "Removing temporary files..."
+            echo -e "${BLUE}Removing temporary files...${NC}"
             rm -rf "$TEMP_DIR"/*
             echo -e "${GREEN}Removing temporary files completed successfully!${NC}"
         else
-            echo -e "${RED}Temp directory exists but is empty. Nothing to clean.${NC}"
+            echo -e "${YELLOW}Temp directory exists but is empty. Nothing to clean.${NC}"
+        fi
+    else
+        echo -e "${RED}Temp directory doesn't exist. Skipping...${NC}"
+    fi
+
+    # Handle sources directory cleanup
+    if [ -d "$SOURCES_DIR" ]; then
+        if [ "$(ls -A "$SOURCES_DIR" 2>/dev/null)" ]; then
+            echo -e "${BLUE}Cleaning sources directory...${NC}"
+            rm -rf "$SOURCES_DIR"/*
+            echo -e "${GREEN}Cleaning sources directory completed successfully!${NC}"
+        else
+            echo -e "${YELLOW}Sources directory exists but is empty. Nothing to clean.${NC}"
         fi
     else
         echo -e "${RED}Temp directory doesn't exist. Skipping...${NC}"
