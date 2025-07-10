@@ -1,4 +1,4 @@
-<h1 align=center>Smollinux</h1>
+<h1 align=center>Smollinux!</h1>
 <p align=center>A fully <b>from-scratch</b> minimal Linux system, designed to be simple, it works, and reliable.</p>
 
 ---
