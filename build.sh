@@ -20,7 +20,7 @@ TEMP_DIR="$WORKDIR/temp"
 GLIBC_BUILD_DIR="$SOURCES_BUILD_DIR/glibc"
 GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
 # List of libraries to copy into initramfs
-INITRAMFS_LIBS="ld-linux-x86-64.so.2" "libc.so.6" "libm.so.6" "libresolv.so.2"
+INITRAMFS_LIBS=("ld-linux-x86-64.so.2" "libc.so.6" "libm.so.6" "libresolv.so.2")
 
 
 
@@ -175,6 +175,7 @@ EOF
         
         # Create busybox symlinks
 		ls "$INITRAMFS_DIR"
+		ls "$INITRAMFS_DIR/bin"
         echo -e "${GREEN}Creating busybox symlinks...${NC}"
         for cmd in blkid cat cut echo grep ls mkdir mount seq sh sleep switch_root; do
             ln -sf busybox "$INITRAMFS_DIR/bin/$cmd"
