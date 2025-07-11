@@ -23,12 +23,3 @@ GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
 INITRAMFS_LIBS=("ld-linux-x86-64.so.2" "libc.so.6" "libm.so.6" "libresolv.so.2")
 BUSYBOX_URL="https://busybox.net/downloads/"
 
-
-echo "Workdir: $WORKDIR"
-echo "Initramfs dir: $INITRAMFS_DIR"
-echo "Sources dir: $SOURCES_DIR"
-echo "Sources build dir: $SOURCES_BUILD_DIR"
-echo "Sources install dir: $SOURCES_INSTALL_DIR"
-echo "Build dir: $BUILD_DIR"
-echo "Temp dir: $TEMP_DIR"
-echo ""

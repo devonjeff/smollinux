@@ -2,25 +2,45 @@
 
 source "$(dirname "$0")/../config.sh"
 
-# Check if there's already a glibc directory in $WORKDIR/sources
-if ls "$WORKDIR/sources" | grep -q "glibc-"; then
-    echo -e "${GREEN}Glibc source already exists in $WORKDIR/sources${NC}"
-else
-    echo -e "${YELLOW}Glibc source not found. Downloading latest version...${NC}"
-    
-    # Get the latest version from GNU FTP site
-    LATEST_VERSION=$(wget -qO- 'https://mirror.freedif.org/GNU/libc/' | grep -o 'glibc-[0-9]\+\.[0-9]\+\.tar.gz' | sort -V | tail -n1)
-    echo -e "${BLUE}Glibc latest version is: $LATEST_VERSION${NC}"
+# Get the latest version from the GNU FTP site
+echo -e "${BLUE}Checking for latest Glibc version...${NC}"
+GLIBC_URL="https://mirror.freedif.org/GNU/libc/"
+LATEST_VERSION=$(wget -qO- "$GLIBC_URL" | grep -o 'glibc-[0-9]\+\.[0-9]\+\.tar.gz' | sort -V | tail -n1)
 
-    # Download the latest version
-    echo -e -n "${BLUE}"
-    wget -q --show-progress "https://mirror.freedif.org/GNU/libc/$LATEST_VERSION" -P "$WORKDIR/temp"
-    echo -e -n "${NC}"
-    
-    # Extract the downloaded archive
+if [ -z "$LATEST_VERSION" ]; then
+    echo -e "${RED}Failed to determine latest Glibc version${NC}"
+    exit 1
+fi
+
+# Get the directory name without .tar.gz
+SOURCE_DIR_NAME=$(echo "$LATEST_VERSION" | sed 's/\.tar\.gz//')
+GLIBC_SRC_DIR="$WORKDIR/sources/$SOURCE_DIR_NAME"
+
+# Check if Glibc source already exists
+if [ -d "$GLIBC_SRC_DIR" ]; then
+    echo -e "${GREEN}Glibc source already exists at $GLIBC_SRC_DIR${NC}"
+else
+    # Check if the tarball is already downloaded
+    if [ -f "$WORKDIR/temp/$LATEST_VERSION" ]; then
+        echo -e "${YELLOW}Glibc tarball already downloaded${NC}"
+    else
+        echo -e "${BLUE}Latest Glibc version: $LATEST_VERSION${NC}"
+        DOWNLOAD_URL="${GLIBC_URL}${LATEST_VERSION}"
+
+        # Download Glibc tarball
+        cd "$WORKDIR/temp"
+        echo -e "${BLUE}Downloading from $DOWNLOAD_URL...${NC}"
+        echo -e -n "${BLUE}"
+        wget -q --show-progress "$DOWNLOAD_URL" -O "$LATEST_VERSION"
+        echo -e -n "${NC}"
+    fi
+
+    echo -e "${BLUE}Extracting Glibc source...${NC}"
+    # Extract the tarball to sources directory
+    mkdir -p "$WORKDIR/sources"
     tar -xf "$WORKDIR/temp/$LATEST_VERSION" -C "$WORKDIR/sources"
     
-    # Clean up the downloaded archive
+    # Clean up the downloaded archive (commented out as in original)
     #rm "/temp/$LATEST_VERSION"
     
     echo -e "${GREEN}Downloaded and extracted $LATEST_VERSION to $WORKDIR/sources${NC}"

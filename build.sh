@@ -1,6 +1,15 @@
 #!/bin/bash
 
-source "$(dirname "$0")/../config.sh"
+source "$(dirname "$0")/config.sh"
+
+echo "Workdir: $WORKDIR"
+echo "Initramfs dir: $INITRAMFS_DIR"
+echo "Sources dir: $SOURCES_DIR"
+echo "Sources build dir: $SOURCES_BUILD_DIR"
+echo "Sources install dir: $SOURCES_INSTALL_DIR"
+echo "Build dir: $BUILD_DIR"
+echo "Temp dir: $TEMP_DIR"
+echo ""
 
 set -e
 
