@@ -308,7 +308,7 @@ EOF
         if [ -f "$GLIBC_BUILD_DIR/config.status" ]; then
             echo "Glibc is already configured, skipping configuration step."
         else
-        
+
         # Configure glibc
         echo "Configuring glibc..."
         "$GLIBC_SRC/configure" --prefix=/usr --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
