@@ -38,3 +38,16 @@ jobs:
 
       - name: Run ls command
         run: ls -al
+
+      - name: Ensure artifacts directory exists
+        run: mkdir -p artifacts
+
+      - name: Copy initramfs.cpio.gz to artifacts/
+        run: cp build/initramfs.cpio.gz artifacts/
+
+      # Optionally: Upload as a workflow artifact
+      - name: Upload initramfs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: initramfs
+          path: artifacts/initramfs.cpio.gz
