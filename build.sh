@@ -345,6 +345,8 @@ EOF
 
     	echo -e "${DARK_GREEN}Initramfs directory structure created successfully.${NC}"
 	fi
+    echo "SLEEPING 5 SECONDS"
+    sleep 5
 	create_initramfs
 }
 
@@ -363,9 +365,11 @@ create_initramfs() {
         return 1
     fi
     
+    cd "$INITRAMFS_DIR"
     # Create the initramfs image
-    find "$INITRAMFS_DIR" | cpio -o --format=newc 2>/dev/null | gzip > "$BUILD_DIR/initramfs.cpio.gz"
-    
+    find . | cpio -o --format=newc | gzip > "$BUILD_DIR/initramfs.cpio.gz"
+    cd "$WORKDIR"
+
     # Check if the operation was successful
     if [ $? -eq 0 ] && [ -f "$BUILD_DIR/initramfs.cpio.gz" ]; then
         echo "Successfully created initramfs at $BUILD_DIR/initramfs.cpio.gz"
