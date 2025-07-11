@@ -1,4 +1,4 @@
-name: Run build.sh and Extract Value
+name: Run build.sh
 
 on:
   workflow_dispatch:
