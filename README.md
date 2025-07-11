@@ -13,34 +13,29 @@
 
 ---
 
-## ⚙️ Directory Structure
-1. Initramfs
-<pre>
-├── bin
-│   ├── blkid -> busybox
-│   ├── cat -> busybox
-│   ├── cut -> busybox
-│   ├── echo -> busybox
-│   ├── grep -> busybox
-│   ├── ls -> busybox
-│   ├── mkdir -> busybox
-│   ├── mount -> busybox
-│   ├── seq -> busybox
-│   ├── sh -> busybox
-│   ├── sleep -> busybox
-│   └── switch_root -> busybox
-├── dev
-│   ├── console
-│   └── null
-├── init
-├── lib64
-├── newroot
-├── proc
-├── sys
-└── usr
-</pre>
+## A guide for building and running this distro in qemu
+1. Copy the build.sh into your system
+2. Make a folder and name it whatever you want
+3. Copy the build.sh file into the folder you just created
+4. Change directory into the folder
+5. If you want to build and make the compressed initramfs file run: `./build.sh build initramfs`
+6. If you want to build the rootfs and make a rootfs image run: `./build.sh build rootfs`
+7. To clean everything except sources directory or / and you want to rebuild run: `./build clean`
+8. To get some help run the command: `./build help`
+9. *This guide is not finished yet*
 
----
+## 🚀 Build Process
+
+The system is built in reproducible stages:
+
+1. **The initramfs**
+   - Create basic directory structure in $WORKDIR/initramfs (bin, dev, lib64, newroot, proc, sys, usr)
+   - Generate the init script that handles early boot process
+   - Set up essential utilities through busybox symlinks (blkid, cat, cut, echo, grep, ls, mkdir, mount, seq,    sh, sleep, switch_root)
+   - Configure necessary device nodes for system boot:
+     - Create console device (character device 5:1) with mode 600
+     - Create null device (character device 1:3) with mode 666
+   - Create a compressed initramfs file, and that's it
 
 ## 🗂️ Directories Explained
 
@@ -67,20 +62,32 @@
   - Temporary storage for downloaded packages or source tarballs
   - Cleaned between builds to ensure reproducibility
 
----
-
-## 🚀 Build Process
-
-The system is built in reproducible stages:
-
-1. **The initramfs**
-   - Create basic directory structure in $WORKDIR/initramfs (bin, dev, lib64, newroot, proc, sys, usr)
-   - Generate the init script that handles early boot process
-   - Set up essential utilities through busybox symlinks (blkid, cat, cut, echo, grep, ls, mkdir, mount, seq, sh, sleep, switch_root)
-   - Configure necessary device nodes for system boot:
-     - Create console device (character device 5:1) with mode 600
-     - Create null device (character device 1:3) with mode 666
-     - These special files are required for basic system functionality
+## ⚙️ Directory Structure
+1. Initramfs
+<pre>
+├── bin
+│   ├── blkid -> busybox
+│   ├── cat -> busybox
+│   ├── cut -> busybox
+│   ├── echo -> busybox
+│   ├── grep -> busybox
+│   ├── ls -> busybox
+│   ├── mkdir -> busybox
+│   ├── mount -> busybox
+│   ├── seq -> busybox
+│   ├── sh -> busybox
+│   ├── sleep -> busybox
+│   └── switch_root -> busybox
+├── dev
+│   ├── console
+│   └── null
+├── init
+├── lib64
+├── newroot
+├── proc
+├── sys
+└── usr
+</pre>
 
 ---
 
