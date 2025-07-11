@@ -153,5 +153,11 @@ EOF
     sudo mknod -m 600 "$INITRAMFS_DIR/dev/console" c 5 1
     sudo mknod -m 666 "$INITRAMFS_DIR/dev/null" c 1 3
 
+    # Symlink /lib to /lib64
+    (
+        cd "$INITRAMFS_DIR"
+        ln -s "lib" "lib64"
+    )
+
 fi
 
