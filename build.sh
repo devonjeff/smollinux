@@ -240,7 +240,7 @@ EOF
         else
             # Configure glibc
             echo "Configuring glibc..."
-            "$GLIBC_SRC/configure" --prefix=/usr \
+            "$GLIBC_SRC/configure" --prefix=/usr --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
             --enable-obsolete-rpc --disable-werror --with-headers=/usr/include \
             --enable-kernel=3.2
         fi
