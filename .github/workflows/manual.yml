@@ -12,8 +12,9 @@ jobs:
         
       - name: Install dependencies
         run: |
+          lsb_release -a
           sudo apt-get update
-          sudo apt-get install -y build-essential linux-libc-dev linux-headers-amd64 gawk python3
+          sudo apt-get install -y build-essential linux-libc-dev linux-headers-$(uname -r) gawk python3
 
       - name: Make build.sh executable
         run: chmod +x ./build.sh
