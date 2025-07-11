@@ -312,7 +312,11 @@ EOF
             echo "Configuring glibc..."
             "$GLIBC_SRC/configure" --prefix=/usr --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
             --enable-obsolete-rpc --disable-werror --with-headers=/usr/include \
-            --enable-kernel=3.2
+            --enable-kernel=3.2 \
+		CC="gcc -m64" \
+		CXX="g++ -m64" \
+		CFLAGS="-O2" \
+		CXXFLAGS="-O2"
         fi
 
         # Check if glibc is already built
