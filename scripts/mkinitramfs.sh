@@ -14,7 +14,7 @@ if [ "$(ls -A "$INITRAMFS_DIR" 2>/dev/null)" ]; then
 else
     echo -e "${GREEN}Creating directories inside initramfs folder...${NC}"
     # Create directory inside initramfs's folder
-    mkdir -p "$INITRAMFS_DIR"/{bin,dev,lib64,proc,sys,newroot,usr}
+    mkdir -p "$INITRAMFS_DIR"/{bin,dev,lib,proc,sys,newroot,usr}
     
     # Create init script
     echo -e "${GREEN}Creating init script...${NC}"

@@ -87,7 +87,7 @@ fi
 for lib in "${INITRAMFS_LIBS[@]}"; do
     if [ -f "$GLIBC_INSTALL_DIR/lib64/$lib" ]; then
         echo "Copying $lib..."
-        cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib64"
+        cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib"
     else
         echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
     fi
