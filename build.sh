@@ -308,15 +308,17 @@ EOF
         if [ -f "$GLIBC_BUILD_DIR/config.status" ]; then
             echo "Glibc is already configured, skipping configuration step."
         else
-            # Configure glibc
-            echo "Configuring glibc..."
-            "$GLIBC_SRC/configure" --prefix=/usr --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
-            --enable-obsolete-rpc --disable-werror --with-headers=/usr/include \
-            --enable-kernel=3.2 \
-		CC="gcc -m64" \
-		CXX="g++ -m64" \
-		CFLAGS="-O2" \
-		CXXFLAGS="-O2"
+        
+        # Configure glibc
+        echo "Configuring glibc..."
+        "$GLIBC_SRC/configure" --prefix=/usr --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
+        --enable-obsolete-rpc --disable-werror --with-headers="${KERNEL_HEADERS}" \
+        --enable-kernel=3.2 \
+        CC="gcc -m64" \
+        CXX="g++ -m64" \
+        CFLAGS="-O2" \
+        CXXFLAGS="-O2"
+
         fi
 
         # Check if glibc is already built
