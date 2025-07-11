@@ -141,8 +141,6 @@ EOF
     chmod +x "$INITRAMFS_DIR/init"
 
     # Create busybox symlinks
-    ls "$INITRAMFS_DIR"
-    ls "$INITRAMFS_DIR/bin"
     echo -e "${GREEN}Creating busybox symlinks...${NC}"
     for cmd in blkid cat cut echo grep ls mkdir mount seq sh sleep switch_root; do
         ln -sf busybox "$INITRAMFS_DIR/bin/$cmd"

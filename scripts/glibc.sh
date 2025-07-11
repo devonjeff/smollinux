@@ -18,11 +18,11 @@ GLIBC_SRC_DIR="$WORKDIR/sources/$SOURCE_DIR_NAME"
 
 # Check if Glibc source already exists
 if [ -d "$GLIBC_SRC_DIR" ]; then
-    echo -e "${GREEN}Glibc source already exists at $GLIBC_SRC_DIR${NC}"
+    echo -e "${BLUE}Glibc source already exists at $GLIBC_SRC_DIR${NC}"
 else
     # Check if the tarball is already downloaded
     if [ -f "$WORKDIR/temp/$LATEST_VERSION" ]; then
-        echo -e "${YELLOW}Glibc tarball already downloaded${NC}"
+        echo -e "${BLUE}Glibc tarball already downloaded${NC}"
     else
         echo -e "${BLUE}Latest Glibc version: $LATEST_VERSION${NC}"
         DOWNLOAD_URL="${GLIBC_URL}${LATEST_VERSION}"

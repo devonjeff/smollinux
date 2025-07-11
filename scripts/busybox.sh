@@ -5,12 +5,12 @@ source "$(dirname "$0")/../config.sh"
 set -e
 
 # Get the latest version from the Busybox website
-echo "Checking for latest Busybox version..."
+echo -e "${BLUE}Checking for latest Busybox version...${NC}"
 BUSYBOX_URL="https://busybox.net/downloads/"
 LATEST_VERSION=$(curl -s "$BUSYBOX_URL" | grep -o 'busybox-[0-9.]*\.tar\.bz2' | sort -V | tail -n1)
 
 if [ -z "$LATEST_VERSION" ]; then
-    echo "Failed to determine latest Busybox version"
+    echo -e "${RED}Failed to determine latest Busybox version${NC}"
     exit 1
 fi
 
@@ -20,55 +20,55 @@ BUSYBOX_SRC_DIR="$SOURCES_DIR/$SOURCE_DIR_NAME"
 
 # Check if Busybox binary already exists
 if [ -f "$BUSYBOX_SRC_DIR/busybox" ]; then
-    echo "Busybox already built at $BUSYBOX_SRC_DIR/busybox"
+    echo -e "${BLUE}Busybox already built at $BUSYBOX_SRC_DIR/busybox${NC}"
 else
     # Check if source directory exists
     if [ -d "$BUSYBOX_SRC_DIR" ]; then
-        echo "Busybox source already extracted at $BUSYBOX_SRC_DIR"
+        echo -e "${BLUE}Busybox source already extracted at $BUSYBOX_SRC_DIR${NC}"
     else
         # Check if the tarball is already downloaded
         if [ -f "$TEMP_DIR/$LATEST_VERSION" ]; then
-            echo "Busybox tarball already downloaded"
+            echo -e "${BLUE}Busybox tarball already downloaded${NC}"
         else
-            echo "Latest Busybox version: $LATEST_VERSION"
+            echo -e "${BLUE}Latest Busybox version: $LATEST_VERSION${NC}"
             DOWNLOAD_URL="${BUSYBOX_URL}${LATEST_VERSION}"
 
             # Download Busybox tarball
             cd "$TEMP_DIR"
-            echo "Downloading from $DOWNLOAD_URL..."
+            echo -e "${BLUE}Downloading from $DOWNLOAD_URL...${NC}"
             wget -q "$DOWNLOAD_URL" -O "$LATEST_VERSION"
         fi
 
-        echo "Extracting Busybox source..."
+        echo -e "${BLUE}Extracting Busybox source...${NC}"
         # Extract the tarball to SOURCES_DIR
         mkdir -p "$SOURCES_DIR"
         tar -xf "$TEMP_DIR/$LATEST_VERSION" -C "$SOURCES_DIR"
     fi
 
-    echo "Building Busybox..."
+    echo -e "${BLUE}Building Busybox...${NC}"
     cd "$BUSYBOX_SRC_DIR"
 
     # Check if configuration already exists
     if [ ! -f ".config" ]; then
         # Generate default configuration
-        echo "Generating default configuration..."
+        echo -e "${BLUE}Generating default configuration...${NC}"
         make defconfig
     fi
 
     # Modify configuration
-    echo "Modifying configuration..."
+    echo -e "${BLUE}Modifying configuration...${NC}"
     sed -i -e '/^# CONFIG_STATIC is not set/c\CONFIG_STATIC=n' -e '/^CONFIG_STATIC[ =]/c\CONFIG_STATIC=n' .config
     sed -i '/^CONFIG_TC[ =]/c\# CONFIG_TC is not set' .config
 
     # Build Busybox
-    echo "Building Busybox with $(nproc) parallel jobs..."
+    echo -e "${BLUE}Building Busybox with $(nproc) parallel jobs...${NC}"
     make -j$(nproc)
 
-    echo "Build complete..."
+    echo -e "${GREEN}Build complete...${NC}"
 fi
 
-echo "Busybox binary location: $BUSYBOX_SRC_DIR/busybox"
-echo "Copying busybox binary into $INITRAMFS_DIR/bin"
+echo -e "${BLUE}Busybox binary location: $BUSYBOX_SRC_DIR/busybox${NC}"
+echo -e "C${BLUE}opying busybox binary into $INITRAMFS_DIR/bin${NC}"
 mkdir -p "$INITRAMFS_DIR/bin"
 cp "$BUSYBOX_SRC_DIR/busybox" "$INITRAMFS_DIR/bin"
 
