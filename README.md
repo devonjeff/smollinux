@@ -13,7 +13,7 @@
 
 ---
 
-## A guide for building and running this distro in qemu
+## 🛠️ A guide for building and running this distro in qemu
 1. Copy the build.sh into your system
 2. Make a folder and name it whatever you want
 3. Copy the build.sh file into the folder you just created
@@ -91,7 +91,7 @@ The system is built in reproducible stages:
 
 ---
 
-## 🛠️ Requirements
+## Requirements
 
 - Not defined yet
 
