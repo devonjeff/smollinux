@@ -103,14 +103,24 @@ else
     make install DESTDIR="$GLIBC_INSTALL_DIR"
 fi
 
-# Copy each library
-for lib in "${INITRAMFS_LIBS[@]}"; do
-    if [ -f "$GLIBC_INSTALL_DIR/lib64/$lib" ]; then
-        echo "Copying $lib..."
-        cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib"
-    else
-        echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
-    fi
-done
+case "$1" in
+    "initramfs")
+        # Copy each library
+        for lib in "${INITRAMFS_LIBS[@]}"; do
+            if [ -f "$GLIBC_INSTALL_DIR/lib64/$lib" ]; then
+                echo "Copying $lib..."
+                cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib"
+            else
+                echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
+            fi
+        done
+        ;;
+    "rootfs")
+        echo "Copying libs into $ROOTFS_DIR/lib"
+        ;;
+    *)
+        exit 1
+        ;;
+esac
 
 echo -e "${DARK_GREEN}Initramfs directory structure created successfully.${NC}"

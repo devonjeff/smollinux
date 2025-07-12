@@ -4,6 +4,7 @@ source "$(dirname "$0")/config.sh"
 
 echo "Workdir: $WORKDIR"
 echo "Initramfs dir: $INITRAMFS_DIR"
+echo "Rootfs dir: $ROOTFS_DIR"
 echo "Sources dir: $SOURCES_DIR"
 echo "Sources build dir: $SOURCES_BUILD_DIR"
 echo "Sources install dir: $SOURCES_INSTALL_DIR"
@@ -12,6 +13,9 @@ echo "Temp dir: $TEMP_DIR"
 echo ""
 
 set -e
+
+echo -e "${GREEN}Creating directories${NC}"
+    mkdir -p "$INITRAMFS_DIR" "$SOURCES_DIR" "$SOURCES_BUILD_DIR" "$SOURCES_INSTALL_DIR" "$BUILD_DIR" "$TEMP_DIR" "$ROOTFS_DIR"
 
 # Main command dispatcher
 if [ $# -lt 1 ]; then
