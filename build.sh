@@ -32,7 +32,7 @@ case "$1" in
       echo -e "${GREEN}Building initramfs...${NC}"
       ./scripts/mkinitramfs.sh
       ./scripts/busybox.sh
-      ./scripts/glibc.sh
+      ./scripts/glibc.sh initramfs
       ./scripts/mkcompinitramfs.sh
     else
       echo -e "${GREEN}Please specify what to build:${NC}"
