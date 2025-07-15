@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 # Variables
 WORKDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INITRAMFS_DIR="$WORKDIR/initramfs"
-ROOTFS_DIR="$WORKDIR/rootfs
+ROOTFS_DIR="$WORKDIR/rootfs"
 SOURCES_DIR="$WORKDIR/sources"
 SOURCES_BUILD_DIR="$SOURCES_DIR/build"
 SOURCES_INSTALL_DIR="$SOURCES_DIR/install"
