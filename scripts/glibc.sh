@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 source "$(dirname "$0")/../config.sh"
 
 # Get the latest version from the GNU FTP site
@@ -117,8 +117,10 @@ case "$1" in
         ;;
     "rootfs")
         echo "Copying libs into $ROOTFS_DIR/lib"
+        cp "$GLIBC_INSTALL_DIR"/lib64/* "$ROOTFS_DIR/lib"
         ;;
     *)
+        echo "No given argument"
         exit 1
         ;;
 esac

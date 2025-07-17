@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 source "$(dirname "$0")/config.sh"
 
 echo "Workdir: $WORKDIR"
@@ -12,10 +12,8 @@ echo "Build dir: $BUILD_DIR"
 echo "Temp dir: $TEMP_DIR"
 echo ""
 
-set -e
-
-echo -e "${GREEN}Creating directories${NC}"
-    mkdir -p "$INITRAMFS_DIR" "$SOURCES_DIR" "$SOURCES_BUILD_DIR" "$SOURCES_INSTALL_DIR" "$BUILD_DIR" "$TEMP_DIR" "$ROOTFS_DIR"
+echo -e "${GREEN}Creating directories...${NC}"
+    mkdir -p "$INITRAMFS_DIR" "$INITRAMFS_FILES_DIR" "$ROOTFS_DIR" "$ROOTFS_FILES_DIR" "$SOURCES_DIR" "$SOURCES_BUILD_DIR" "$SOURCES_INSTALL_DIR" "$BUILD_DIR" "$TEMP_DIR" "$GLIBC_BUILD_DIR" "$GLIBC_INSTALL_DIR" 
 
 # Main command dispatcher
 if [ $# -lt 1 ]; then
@@ -28,12 +26,16 @@ case "$1" in
   build)
     if [ "$2" = "rootfs" ]; then
       echo -e "${GREEN}Building rootfs...${NC}"
+      ./scripts/mkrootfsdir.sh
+      ./scripts/glibc.sh "$2"
+      ./scripts/busybox.sh "$2"
+      ./scripts/mkrootfsimg.sh
     elif [ "$2" = "initramfs" ]; then
       echo -e "${GREEN}Building initramfs...${NC}"
-      ./scripts/mkinitramfs.sh
-      ./scripts/busybox.sh
-      ./scripts/glibc.sh initramfs
-      ./scripts/mkcompinitramfs.sh
+      ./scripts/mkinitramfsdir.sh
+      ./scripts/glibc.sh "$2"
+      ./scripts/busybox.sh "$2"
+      ./scripts/mkinitramfsimg.sh
     else
       echo -e "${GREEN}Please specify what to build:${NC}"
       echo "  - '$0 build rootfs' to build the root filesystem"

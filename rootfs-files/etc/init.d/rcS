@@ -1,0 +1,64 @@
+#!/bin/sh
+
+echo "[rcS] Running /etc/rcS..."
+
+# Mount filesystems
+/bin/mount -a
+echo "[rcS] All filesystems mounted."
+echo "[rcS] Setting kernel log level to 3"
+
+# 
+dmesg -n 3
+
+# Set hostname
+if [ -f /etc/hostname ]; then
+    hostname "$(cat /etc/hostname)"
+else
+    hostname "smollinux"
+fi
+
+# Check Filesystem
+echo "[rcS] Resolving root device..."
+ROOTDEV=$(awk '$2 == "/" { print $1 }' /proc/mounts)
+if [ -z "$ROOTDEV" ]; then
+    echo "[rcS] ERROR: Could not determine root device!"
+    exec sh
+fi
+echo "[rcS] Root device is: $ROOTDEV"
+
+echo "[rcS] Checking filesystem..."
+fsck.ext4 -y "$ROOTDEV"
+FSCK_STATUS=$?
+if [ "$FSCK_STATUS" -eq 0 ] || [ "$FSCK_STATUS" -eq 1 ]; then
+    echo "[rcS] Filesystem OK. Remounting root as read-write."
+    mount -o remount,rw /
+else
+    echo "[rcS] ERROR: Filesystem check failed!"
+    echo "[rcS] Dropping to emergency shell."
+    exec sh
+fi
+
+# Mount root rw
+echo "[rcS] Remounting / as read-write..."
+mount -o remount,rw /
+if [ $? -ne 0 ]; then
+    echo "[rcS] ERROR: Remount failed!"
+    exec sh
+fi
+echo "[rcS] Root filesystem is now read-write."
+
+# Clear terminal
+clear
+
+# Welcome
+cat <<!
+  ____                  _ _     _                  
+ / ___| _ __ ___   ___ | | |   (_)_ __  _   ___  __
+ \___ \| '_   _ \ / _ \| | |   | | '_ \| | | \ \/ /
+  ___) | | | | | | (_) | | |___| | | | | |_| |>  < 
+ |____/|_| |_| |_|\___/|_|_____|_|_| |_|\__,_/_/\_\\
+Boot took $(cut -d' ' -f1 /proc/uptime) seconds
+Linux kernel $(uname -r)
+Welcome to SmolLinux
+
+!

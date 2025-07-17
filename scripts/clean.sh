@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 source "$(dirname "$0")/../config.sh"
 
 echo -e "${GREEN}Cleaning the project...${NC}"
@@ -15,6 +15,19 @@ if [ -d "$INITRAMFS_DIR" ]; then
     fi
 else
     echo -e "${RED}Initramfs directory doesn't exist. Skipping...${NC}"
+fi
+
+# Handle rootfs directory cleanup
+if [ -d "$ROOTFS_DIR" ]; then
+    if [ "$(ls -A "$ROOTFS_DIR" 2>/dev/null)" ]; then
+        echo -e "${BLUE}Removing rootfs files...${NC}"
+        rm -rf "$ROOTFS_DIR"/*
+        echo -e "${GREEN}Removing rootfs files completed successfully!${NC}"
+    else
+        echo -e "${YELLOW}Rootfs directory exists but is empty. Nothing to clean.${NC}"
+    fi
+else
+    echo -e "${RED}Rootfs directory doesn't exist. Skipping...${NC}"
 fi
 
 # Handle build directory cleanup

@@ -1,8 +1,6 @@
 #!/bin/bash
-
+set -euo pipefail
 source "$(dirname "$0")/../config.sh"
-
-set -e
 
 # Get the latest version from the Busybox website
 echo -e "${BLUE}Checking for latest Busybox version...${NC}"
@@ -68,8 +66,23 @@ else
 fi
 
 echo -e "${BLUE}Busybox binary location: $BUSYBOX_SRC_DIR/busybox${NC}"
-echo -e "C${BLUE}opying busybox binary into $INITRAMFS_DIR/bin${NC}"
-mkdir -p "$INITRAMFS_DIR/bin"
-cp "$BUSYBOX_SRC_DIR/busybox" "$INITRAMFS_DIR/bin"
+
+case "$1" in
+    "initramfs")
+        echo -e "${BLUE}Copying busybox binary into $INITRAMFS_DIR/bin${NC}"
+        cp "$BUSYBOX_SRC_DIR/busybox" "$INITRAMFS_DIR/bin"
+        ;;
+    "rootfs")
+        echo -e "${BLUE}Copying busybox binary into $ROOTFS_DIR/bin${NC}"
+        cp "$BUSYBOX_SRC_DIR/busybox" "$ROOTFS_DIR/bin"
+        sudo chmod +x "$ROOTFS_DIR"/bin/busybox
+        echo -e "${BLUE}Installing busybox into $ROOTFS_DIR${NC}"
+        sudo chroot "$ROOTFS_DIR" /bin/busybox --install -s
+        ;;
+    *)
+        echo "No given argument"
+        exit 1
+        ;;
+esac
 
 cd "$WORKDIR"

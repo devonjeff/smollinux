@@ -2,11 +2,10 @@
 sources/*
 build/*
 temp/*
+initramfs/*
+rootfs/*
 .vscode/*
 
-# Allow .gitkeep files to keep the directories in the repo
-!sources/.gitkeep
-!build/.gitkeep
 
 # Common ignore patterns
 .env

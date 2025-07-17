@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 source "$(dirname "$0")/../config.sh"
 
 echo "Creating initramfs image..."
