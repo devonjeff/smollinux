@@ -32,7 +32,7 @@ GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
 
 COREUTILS_BUILD_DIR="$SOURCES_BUILD_DIR/coreutils"
 COREUTILS_INSTALLED_MARKER="$ROOTFS_DIR/usr/bin/ls"
-COREUTILS_URL="https://ftp.gnu.org/gnu/coreutils"
+COREUTILS_URL="https://ftp.gnu.org/gnu/coreutils/"
 
 UTILLINUX_URL="https://www.kernel.org/pub/linux/utils/util-linux/"
 UTIL_LINUX_BUILD_DIR="$SOURCES_BUILD_DIR/util-linux"

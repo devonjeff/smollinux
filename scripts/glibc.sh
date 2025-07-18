@@ -46,9 +46,6 @@ else
     echo -e "${GREEN}Downloaded and extracted $LATEST_VERSION to $WORKDIR/sources${NC}"
 fi
 
-# Exit on error
-set -e
-
 # Find the glibc source directory
 GLIBC_SRC=$(find $SOURCES_DIR -maxdepth 1 -name "glibc-*" -type d | sort -V | tail -n1)
 if [ -z "$GLIBC_SRC" ]; then
