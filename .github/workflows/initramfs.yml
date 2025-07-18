@@ -63,4 +63,7 @@ jobs:
         with:
           name: initramfs
           path: artifacts/initramfs.cpio.gz
+
+      - name: check directory again
+        run: ls -a
           
