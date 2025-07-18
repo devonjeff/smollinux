@@ -1,4 +1,4 @@
-name: Run build.sh
+name: Build initramfs
 
 on:
   workflow_dispatch:
