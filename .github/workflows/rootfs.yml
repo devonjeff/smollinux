@@ -46,7 +46,7 @@ jobs:
       - name: Run build.sh build rootfs
         env:
           KERNEL_HEADERS: ${{ github.workspace }}/kernel-headers/include
-        run: ./build.sh build initramfs
+        run: ./build.sh build rootfs
 
       - name: Run ls command
         run: ls -al
