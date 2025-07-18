@@ -75,9 +75,8 @@ else
 
 # Configure glibc
 echo "Configuring glibc..."
-"$GLIBC_SRC/configure" --prefix=/usr --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
---enable-obsolete-rpc --disable-werror --with-headers="${KERNEL_HEADERS}" \
---enable-kernel=3.2 \
+"$GLIBC_SRC/configure" --prefix=/usr --libdir=/lib --host=x86_64-linux-gnu --build=x86_64-linux-gnu \
+--with-headers="${KERNEL_HEADERS}" \
 CC="gcc -m64" \
 CXX="g++ -m64" \
 CFLAGS="-O2" \
@@ -94,35 +93,35 @@ else
     make -j16
 fi
 
-# Check if glibc is already installed
-if [ -d "$GLIBC_INSTALL_DIR/usr/lib64" ]; then
-    echo "Glibc is already installed, skipping installation step."
-else
-    # Install glibc
-    echo "Installing glibc..."
-    make install DESTDIR="$GLIBC_INSTALL_DIR"
-fi
+
 
 case "$1" in
     "initramfs")
-        # Copy each library
-        for lib in "${INITRAMFS_LIBS[@]}"; do
-            if [ -f "$GLIBC_INSTALL_DIR/lib64/$lib" ]; then
-                echo "Copying $lib..."
-                cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib"
-            else
-                echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
-            fi
-        done
+        # Check if glibc is already installed
+        if [ -d "$GLIBC_INSTALL_DIR/usr/lib64" ]; then
+            echo "Glibc is already installed, skipping installation step."
+        else
+            # Install glibc
+            echo "Installing glibc..."
+            make install DESTDIR="$GLIBC_INSTALL_DIR"
+            # Copy each library
+            for lib in "${INITRAMFS_LIBS[@]}"; do
+                if [ -f "$GLIBC_INSTALL_DIR/lib64/$lib" ]; then
+                    echo "Copying $lib..."
+                    cp "$GLIBC_INSTALL_DIR/lib64/$lib" "$INITRAMFS_DIR/lib"
+                else
+                    echo "Warning: $lib not found in $GLIBC_INSTALL_DIR/lib64"
+                fi
+            done
+        fi
         ;;
     "rootfs")
-        echo "Copying libs into $ROOTFS_DIR/lib"
-        cp "$GLIBC_INSTALL_DIR"/lib64/* "$ROOTFS_DIR/lib"
+        # Install glibc
+        echo "Installing glibc into rootfs..."
+        make install DESTDIR="$ROOTFS_DIR"
         ;;
     *)
         echo "No given argument"
         exit 1
         ;;
 esac
-
-echo -e "${DARK_GREEN}Initramfs directory structure created successfully.${NC}"

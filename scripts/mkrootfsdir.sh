@@ -10,7 +10,7 @@ if [ "$(ls -A "$ROOTFS_DIR" 2>/dev/null)" ]; then
 else
     echo -e "${GREEN}Creating directories inside rootfs...${NC}"
     # Create directory inside rootfs's folder
-    mkdir -p "$ROOTFS_DIR"/{bin,dev,etc,lib,proc,root,sbin,sys,usr,usr/bin,usr/sbin}
+    mkdir -p "$ROOTFS_DIR"/{bin,dev,etc,proc,root,sbin,sys,usr,usr/bin,usr/sbin,usr/lib,usr/lib32}
     
     # Create files for rootfs
     echo -e "${GREEN}Creating files for rootfs...${NC}"
@@ -25,10 +25,12 @@ else
     sudo mknod -m 600 "$ROOTFS_DIR/dev/console" c 5 1
     sudo mknod -m 666 "$ROOTFS_DIR/dev/null" c 1 3
 
-    # Symlink /lib to /lib64
+    # Symlink folders
     (
         cd "$ROOTFS_DIR"
-        sudo ln -s "lib" "lib64"
+        sudo ln -s "usr/lib" "lib"
+        sudo ln -s "usr/lib" "lib64"
+        sudo ln -s "usr/lib" "usr/lib64"
     )
 
 fi

@@ -30,10 +30,27 @@ TEMP_DIR="$WORKDIR/temp"
 GLIBC_BUILD_DIR="$SOURCES_BUILD_DIR/glibc"
 GLIBC_INSTALL_DIR="$SOURCES_INSTALL_DIR/glibc"
 
+COREUTILS_BUILD_DIR="$SOURCES_BUILD_DIR/coreutils"
+COREUTILS_INSTALLED_MARKER="$ROOTFS_DIR/usr/bin/ls"
+COREUTILS_URL="https://ftp.gnu.org/gnu/coreutils"
+
+UTILLINUX_URL="https://www.kernel.org/pub/linux/utils/util-linux/"
+UTIL_LINUX_BUILD_DIR="$SOURCES_BUILD_DIR/util-linux"
+UTIL_LINUX_INSTALLED_MARKER="$ROOTFS_DIR/usr/bin/lsblk"
+
+BASH_URL="https://ftp.gnu.org/gnu/bash/"
+BASH_BUILD_DIR="$SOURCES_BUILD_DIR/bash"
+BASH_INSTALLED_MARKER="$ROOTFS_DIR/usr/bin/bash"
+
+NCURSES_URL="https://ftp.gnu.org/gnu/ncurses/"
+NCURSES_BUILD_DIR="$SOURCES_BUILD_DIR/ncurses"
+NCURSES_INSTALLED_MARKER="$ROOTFS_DIR/usr/bin/tput"
+
 # List of libraries to copy into initramfs
 INITRAMFS_LIBS=("ld-linux-x86-64.so.2" "libc.so.6" "libm.so.6" "libresolv.so.2")
 
 BUSYBOX_URL="https://busybox.net/downloads/"
+
 
 # Size of the image
 IMG_SIZE="2G"
