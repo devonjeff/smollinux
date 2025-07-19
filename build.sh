@@ -27,10 +27,11 @@ case "$1" in
     if [ "$2" = "rootfs" ]; then
       echo -e "${GREEN}Building rootfs...${NC}"
       ./scripts/mkrootfsdir.sh
-      ./scripts/glibc.sh "$2"
+      ./scripts/bash.sh
       ./scripts/coreutils.sh
       ./scripts/utillinux.sh
-      ./scripts/bash.sh
+      ./scripts/glibc.sh "$2"
+      ./scripts/ncurses.sh
       #./scripts/busybox.sh "$2"
       ./scripts/mkrootfsimg.sh
     elif [ "$2" = "initramfs" ]; then
