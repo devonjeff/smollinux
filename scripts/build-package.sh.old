@@ -27,23 +27,9 @@ echo "==> [$PKG_NAME] Installing to $ABS_INSTALL_DIR"
 CACHE_FILE="$BUILD_DIR/cache.json"
 [ ! -f "$CACHE_FILE" ] && echo "{}" > "$CACHE_FILE"
 [ "$FORCE_CLEAN" = "1" ] && echo "{}" > "$CACHE_FILE"
+current_pkg_hash=$(sha256_file "$PKG_FILE")
+cached_pkg_hash=$(jq -r ".[\"$PKG_NAME\"].pkg_hash // \"\"" "$CACHE_FILE")
 
-
-
-# Dependencies
-if declare -p DEPENDS &>/dev/null; then
-    for dep in "${DEPENDS[@]}"; do
-        echo "==> [$PKG_NAME] Building dependency: $dep"
-        "$SCRIPTS_DIR/build-package.sh" "$dep"
-    done
-    # Invalidate cache if dependencies were rebuilt
-    if [ "$source_dir_hash" = "$cached_source_hash" ]; then
-        echo "==> [$PKG_NAME] Dependency change detected, invalidating cache"
-        source_dir_hash=""
-    fi
-fi
-
-# Handle versioned packages
 if [ -n "$PKG_LATEST_URL" ]; then
     # Determine latest version
     PKG_VERSION="$(latest_version_from_url "$PKG_LATEST_URL" "$PKG_MATCH_REGEX")"
@@ -57,6 +43,7 @@ if [ -n "$PKG_LATEST_URL" ]; then
     PKG_DOWNLOAD_URL="${PKG_DOWNLOAD_URL_TEMPLATE/__TARBALL__/$PKG_FILENAME}"
     PKG_DIR_NAME="${PKG_DIR_NAME/__VERSION__/$PKG_VERSION}"
     PKG_SRC_DIR="$SOURCES_DIR/$PKG_DIR_NAME"
+    #PKG_SRC_DIR="$SOURCES_DIR/$PKG_NAME"
     PKG_BUILD_DIR="${PKG_SRC_DIR}/${PKG_BUILD_DIR:-.}"
 
     echo "==> [$PKG_NAME] Version       : $PKG_VERSION"
@@ -65,21 +52,11 @@ if [ -n "$PKG_LATEST_URL" ]; then
     echo "==> [$PKG_NAME] Extracted Dir : $PKG_SRC_DIR"
 
     # Fetch
-    current_pkg_hash=$(sha256_file "$PKG_FILE")
-    cached_pkg_hash=$(jq -r ".[\"$PKG_NAME\"].pkg_hash // \"\"" "$CACHE_FILE")
+    # Fetch
 
+    
     if [ "$current_pkg_hash" = "$cached_pkg_hash" ]; then
-        if [ ! -f "$TEMP_DIR/$PKG_FILENAME" ]; then
-            echo "==> [$PKG_NAME] Tarball missing, re-fetching"
-            mkdir -p "$TEMP_DIR"
-            (
-                cd "$TEMP_DIR"
-                download "$PKG_DOWNLOAD_URL" "$PKG_FILENAME"
-            )
-            jq ".[\"$PKG_NAME\"].pkg_hash = \"$current_pkg_hash\"" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
-        else
-            echo "==> [$PKG_NAME] Skipping fetch (cached)"
-        fi
+        echo "==> [$PKG_NAME] Skipping fetch (cached)"
     else
         mkdir -p "$TEMP_DIR"
         (
@@ -89,6 +66,7 @@ if [ -n "$PKG_LATEST_URL" ]; then
         jq ".[\"$PKG_NAME\"].pkg_hash = \"$current_pkg_hash\"" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
     fi
 
+    # Extract
     # Extract
     current_tarball_hash=$(sha256_file "$TEMP_DIR/$PKG_FILENAME")
     cached_tarball_hash=$(jq -r ".[\"$PKG_NAME\"].tarball_hash // \"\"" "$CACHE_FILE")
@@ -105,44 +83,49 @@ else
     PKG_BUILD_DIR="${PKG_SRC_DIR}/${PKG_BUILD_DIR:-.}"
 fi
 
-# Compute source directory hash for configure/build/install
-source_dir_hash=$(sha256_dir "$PKG_SRC_DIR")
-cached_source_hash=$(jq -r ".[\"$PKG_NAME\"].source_hash // \"\"" "$CACHE_FILE")
+# Dependencies
+if declare -p DEPENDS &>/dev/null; then
+    for dep in "${DEPENDS[@]}"; do
+        echo "==> [$PKG_NAME] Building dependency: $dep"
+        "$SCRIPTS_DIR/build-package.sh" "$dep"
+    done
+fi
 
 # Configure
-if [ -z "$source_dir_hash" ] || [ "$source_dir_hash" != "$cached_source_hash" ]; then
-    echo "==> [$PKG_NAME] Configuring..."
+# Configure
+# For configure, build, and install, we rely on the pkg hash.
+# A more robust solution would be to hash the source directory.
+if [ "$current_pkg_hash" = "$cached_pkg_hash" ]; then
+    echo "==> [$PKG_NAME] Skipping configure (cached)"
+else
     mkdir -p "$PKG_BUILD_DIR"
     (
         cd "$PKG_BUILD_DIR"
         do_configure
     )
-    # Update source hash in cache
-    jq ".[\"$PKG_NAME\"].source_hash = \"$source_dir_hash\"" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
-else
-    echo "==> [$PKG_NAME] Skipping configure (cached)"
 fi
 
 # Build
-if [ -z "$source_dir_hash" ] || [ "$source_dir_hash" != "$cached_source_hash" ]; then
-    echo "==> [$PKG_NAME] Building..."
+# Build
+if [ "$current_pkg_hash" = "$cached_pkg_hash" ]; then
+    echo "==> [$PKG_NAME] Skipping build (cached)"
+else
     (
         cd "$PKG_BUILD_DIR"
         do_build
     )
-else
-    echo "==> [$PKG_NAME] Skipping build (cached)"
 fi
 
+
 # Install
-if [ -z "$source_dir_hash" ] || [ "$source_dir_hash" != "$cached_source_hash" ]; then
+if [ "$current_pkg_hash" = "$cached_pkg_hash" ]; then
+    echo "==> [$PKG_NAME] Skipping install (cached)"
+else
     echo "==> [$PKG_NAME] Installing to $ABS_INSTALL_DIR"
     (
         cd "$PKG_BUILD_DIR"
         do_install
     )
-else
-    echo "==> [$PKG_NAME] Skipping install (cached)"
 fi
 
 echo "==> [$PKG_NAME] Installed successfully."

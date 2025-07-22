@@ -9,5 +9,8 @@ do_install() {
     echo "==> [initramfs-base] Creating layout at $PKG_INSTALL_DIR"
     mkdir -p "$PKG_INSTALL_DIR"/{bin,sbin,etc,proc,sys,dev}
 
-    install -m 755 "$INITRAMFS_FILES_DIR/init" "$PKG_INSTALL_DIR/init"
-}
+        install -m 755 "$INITRAMFS_FILES_DIR/init" "$PKG_INSTALL_DIR/init"
+    
+        sudo mknod -m 600 "$PKG_INSTALL_DIR/dev/console" c 5 1
+        sudo mknod -m 666 "$PKG_INSTALL_DIR/dev/null" c 1 3
+    }

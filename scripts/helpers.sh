@@ -69,3 +69,7 @@ sha256_tree() {
     find "$dir" -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}'
 }
 
+# Add to helpers.sh
+sha256_dir() {
+    find "$1" -type f -exec sha256sum {} + | sort -k 2 | sha256sum | cut -d ' ' -f 1
+}

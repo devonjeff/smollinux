@@ -20,5 +20,9 @@ do_build() {
 }
 
 do_install() {
-    make CONFIG_PREFIX="$PKG_INSTALL_DIR" install
+    install -m 755 busybox "$PKG_INSTALL_DIR/bin/busybox"
+
+    for app in sh mount echo cat switch_root; do
+        ln -sf busybox "$PKG_INSTALL_DIR/bin/$app"
+    done
 }
