@@ -28,7 +28,7 @@ jobs:
         ./smolpkg mkinitramfsimg --target initramfs
 
     - name: Upload initramfs artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: initramfs
         path: build/initramfs.cpio.gz
