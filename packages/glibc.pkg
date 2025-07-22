@@ -1,0 +1,41 @@
+PKG_NAME="glibc"
+PKG_LATEST_URL="https://ftp.gnu.org/gnu/libc/"
+PKG_MATCH_REGEX="glibc-([0-9]+\.[0-9]+(\.[0-9]+)?)\.tar\.xz"
+PKG_TARBALL_TEMPLATE="glibc-__VERSION__.tar.xz"
+PKG_DOWNLOAD_URL_TEMPLATE="https://ftp.gnu.org/gnu/libc/__TARBALL__"
+PKG_DIR_NAME="glibc-__VERSION__"
+PKG_BUILD_DIR="build"
+
+CONFIGURE_ARGS="--libdir=/lib --prefix=/usr --disable-werror"
+
+do_fetch()     { default_do_fetch; }
+do_extract()   { default_do_extract; }
+
+do_configure() {
+    mkdir -p "$PKG_BUILD_DIR"
+    (
+        cd "$PKG_BUILD_DIR"
+    
+        ../configure \
+            $CONFIGURE_ARGS \
+            --host=x86_64-linux-gnu \
+            --build=x86_64-linux-gnu \
+            --with-headers="${KERNEL_HEADERS}" \
+            CC="gcc -m64" \
+            CXX="g++ -m64" \
+            CFLAGS="-O2" \
+            CXXFLAGS="-O2"
+    )
+}
+
+do_build() {
+    make -j$(nproc) -C "$PKG_BUILD_DIR"
+}
+
+do_install() {
+    ABS_INSTALL_DIR="$(realpath "$PKG_INSTALL_DIR")"
+    make -C "$PKG_BUILD_DIR" DESTDIR="$ABS_INSTALL_DIR" install
+    echo "$ABS_INSTALL_DIR"
+    sleep 10
+}
+

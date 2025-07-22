@@ -1,0 +1,74 @@
+#!/bin/bash
+set -e
+source ./config.sh
+
+ACTION="$1"
+shift || { echo "Usage: ./smolpkg <action> [...]"; exit 1; }
+
+PKG_LIST=()
+BUILD_TARGET=""
+BUILD_ENV=""
+FORCE_CLEAN=0
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --target)
+            BUILD_TARGET="$2"
+            shift 2
+            ;;
+        --env)
+            BUILD_ENV="$2"
+            shift 2
+            ;;
+        --force)
+            FORCE_CLEAN=1
+            shift
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            PKG_LIST+=("$1")
+            shift
+            ;;
+    esac
+done
+
+[ -z "$BUILD_TARGET" ] && BUILD_TARGET="/"
+[ -z "$BUILD_ENV" ] && BUILD_ENV="default"
+
+export BUILD_TARGET
+export BUILD_ENV
+export FORCE_CLEAN
+
+case "$ACTION" in
+    install)
+        if [ ${#PKG_LIST[@]} -eq 0 ]; then
+            echo "==> [smolpkg] No packages specified"
+            exit 1
+        fi
+        for pkg in "${PKG_LIST[@]}"; do
+            "$SCRIPTS_DIR/build-package.sh" "$pkg"
+        done
+        ;;
+    mkinitramfsimg)
+        if [ "$BUILD_TARGET" = "/" ] || [ -z "$BUILD_TARGET" ]; then
+            echo "==> [smolpkg] mkinitramfsimg requires --target"
+            exit 1
+        fi
+        "$SCRIPTS_DIR/build-package.sh" mkinitramfsimg
+        ;;
+    clean)
+        "$SCRIPTS_DIR/clean-all.sh"
+        ;;
+    *)
+        echo "==> [smolpkg] Unknown action: $ACTION"
+        echo "Usage:"
+        echo "  ./smolpkg install <pkg1> [pkg2...] [--target DIR] [--env ENV] [--force]"
+        echo "  ./smolpkg mkinitramfsimg --target DIR [--force]"
+        echo "  ./smolpkg clean"
+        exit 1
+        ;;
+esac

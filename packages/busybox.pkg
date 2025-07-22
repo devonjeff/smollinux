@@ -1,0 +1,24 @@
+PKG_NAME="busybox"
+PKG_LATEST_URL="https://busybox.net/downloads/"
+PKG_MATCH_REGEX="busybox-([0-9]+\.[0-9]+(\.[0-9]+)?)\.tar\.bz2"
+PKG_TARBALL_TEMPLATE="busybox-__VERSION__.tar.bz2"
+PKG_DOWNLOAD_URL_TEMPLATE="https://busybox.net/downloads/__TARBALL__"
+PKG_DIR_NAME="busybox-__VERSION__"
+DEPENDS=(glibc)
+
+do_fetch()     { default_do_fetch; }
+do_extract()   { default_do_extract; }
+
+do_configure() {
+    make defconfig
+    sed -i 's/^CONFIG_STATIC=y/# CONFIG_STATIC is not set/' .config
+    sed -i '/^CONFIG_TC[ =]/c\# CONFIG_TC is not set' .config
+}
+
+do_build() {
+    make -j$(nproc)
+}
+
+do_install() {
+    make CONFIG_PREFIX="$PKG_INSTALL_DIR" install
+}

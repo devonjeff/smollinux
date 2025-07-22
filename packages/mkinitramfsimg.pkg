@@ -1,0 +1,26 @@
+PKG_NAME="mkinitramfsimg"
+
+do_fetch()   { :; }
+do_extract() { :; }
+do_configure() { :; }
+do_build()   { :; }
+
+do_install() {
+    local current_tree_hash=$(sha256_tree "$BASE_DIR/$BUILD_TARGET")
+    local cached_tree_hash=$(jq -r ".mkinitramfsimg.tree_hash // \"\"" "$CACHE_FILE")
+
+    if [ "$current_tree_hash" = "$cached_tree_hash" ] && [ -f "$BUILD_DIR/initramfs.cpio.gz" ]; then
+        echo "==> [mkinitramfsimg] Skipping packing (cached)"
+        return
+    fi
+
+    echo "==> [mkinitramfsimg] Packing $BUILD_TARGET into initramfs.cpio.gz"
+    (
+        cd "$BASE_DIR/$BUILD_TARGET"
+        find . -print0 | cpio --null -ov --format=newc 2>/dev/null \
+          | gzip -9 > "$BUILD_DIR/initramfs.cpio.gz"
+    )
+
+    jq ".mkinitramfsimg.tree_hash = \"$current_tree_hash\"" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+    echo "==> Output: $BUILD_DIR/initramfs.cpio.gz"
+}

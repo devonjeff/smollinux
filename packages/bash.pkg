@@ -1,0 +1,9 @@
+# packages/bash.pkg
+
+PKG_NAME="bash"
+PKG_LATEST_URL="https://ftp.gnu.org/gnu/bash/"
+PKG_MATCH_REGEX="bash-([0-9]+\.[0-9]+(\.[0-9]+)?)\.tar\.gz"
+PKG_TARBALL_TEMPLATE="bash-__VERSION__.tar.gz"
+PKG_DOWNLOAD_URL_TEMPLATE="https://ftp.gnu.org/gnu/bash/__TARBALL__"
+
+CONFIGURE_ARGS="--prefix=$SYSROOT_DIR"
