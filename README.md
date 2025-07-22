@@ -88,3 +88,8 @@ Here are some ideas for contributions:
 ## License
 
 This project is licensed under the GNU General Public License v3.0. See the `LICENSE` file for details.
+## Thank You
+
+A special thank you to everyone who has contributed to this project and to the open-source community for providing the tools and software that make this project possible.
+
+A very special thank you to myself (devonjeff) and Claude AI for helping me making this project.
