@@ -24,11 +24,20 @@ echo "==> [$PKG_NAME] Installing to $ABS_INSTALL_DIR"
 : "${do_build:=:}"
 : "${do_install:=:}"
 
+# Initialize cache file
 CACHE_FILE="$BUILD_DIR/cache.json"
 [ ! -f "$CACHE_FILE" ] && echo "{}" > "$CACHE_FILE"
-[ "$FORCE_CLEAN" = "1" ] && echo "{}" > "$CACHE_FILE"
 
-
+# Handle --force: remove only the current package's cache entry
+if [ "$FORCE_CLEAN" = "1" ]; then
+    if [ -f "$CACHE_FILE" ]; then
+        echo "==> [$PKG_NAME] Clearing cache entry for this package"
+        jq "del(.$PKG_NAME)" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+    else
+        echo "==> [$PKG_NAME] Cache file not found, creating new one"
+        echo "{}" > "$CACHE_FILE"
+    fi
+fi
 
 # Dependencies
 if declare -p DEPENDS &>/dev/null; then
