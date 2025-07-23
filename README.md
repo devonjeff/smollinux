@@ -42,14 +42,15 @@
 
     ```bash
     # Install the base layout and busybox
-    ./smolpkg install initramfs-base busybox --target initramfs
+    # Please note that --target requires an absolute path
+    ./smolpkg install initramfs-base busybox --target <directory>
     ```
 
     Then, you can create the initramfs image:
 
     ```bash
     # Package the initramfs directory into an image
-    ./smolpkg mkinitramfsimg --target initramfs
+    ./smolpkg mkinitramfsimg --target <directory>
     ```
 
     The final image will be located at `build/initramfs.cpio.gz`.
@@ -59,7 +60,7 @@
 If you need to force a rebuild of a package, bypassing the cache, you can use the `--force` flag:
 
 ```bash
-./smolpkg install <package-name> --force
+./smolpkg install <package-name> --target <directory> --force 
 ```
 
 ## How it Works
