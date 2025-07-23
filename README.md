@@ -83,7 +83,6 @@ Here are some ideas for contributions:
 -   Add more packages.
 -   Improve the build scripts.
 -   Write more documentation.
--   Port Smollinux! to other architectures.
 
 ## License
 
