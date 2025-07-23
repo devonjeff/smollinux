@@ -6,11 +6,25 @@ do_configure() { :; }
 do_build()   { :; }
 
 do_install() {
-    echo "==> [initramfs-base] Creating layout at $PKG_INSTALL_DIR"
+    echo "==> [$PKG_NAME] Creating layout at $PKG_INSTALL_DIR"
+    # Create basic directory structure
     mkdir -p "$PKG_INSTALL_DIR"/{bin,sbin,etc,proc,sys,dev}
-
-        install -m 755 "$INITRAMFS_FILES_DIR/init" "$PKG_INSTALL_DIR/init"
     
-        sudo mknod -m 600 "$PKG_INSTALL_DIR/dev/console" c 5 1
-        sudo mknod -m 666 "$PKG_INSTALL_DIR/dev/null" c 1 3
-    }
+    # Install init script
+    install -m 755 "$INITRAMFS_FILES_DIR/init" "$PKG_INSTALL_DIR/init"
+    
+    # Create device nodes (no sudo needed in build environment)
+    mknod -m 600 "$PKG_INSTALL_DIR/dev/console" c 5 1
+    mknod -m 666 "$PKG_INSTALL_DIR/dev/null" c 1 3
+    
+    # Create additional common device nodes
+    mknod -m 666 "$PKG_INSTALL_DIR/dev/tty" c 5 0
+    mknod -m 666 "$PKG_INSTALL_DIR/dev/zero" c 1 5
+    mknod -m 666 "$PKG_INSTALL_DIR/dev/ptmx" c 5 2
+    
+    # Create symlinks for compatibility
+    ln -sf /proc/self/fd "$PKG_INSTALL_DIR/dev/fd"
+    ln -sf /proc/self/fd/0 "$PKG_INSTALL_DIR/dev/stdin"
+    ln -sf /proc/self/fd/1 "$PKG_INSTALL_DIR/dev/stdout"
+    ln -sf /proc/self/fd/2 "$PKG_INSTALL_DIR/dev/stderr"
+}

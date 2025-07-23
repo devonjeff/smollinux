@@ -1,12 +1,31 @@
 #!/bin/sh
+set -e
+
+# Initialize logging
+log() {
+    echo "[$(date +%H:%M:%S)] [initramfs] $1"
+}
 
 # Make sure critical filesystems are mounted
-mount -t devtmpfs devtmpfs /dev
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
+log "Mounting critical filesystems"
+mount -t devtmpfs devtmpfs /dev || {
+    log "ERROR: Failed to mount devtmpfs!"
+    log "Dropping to emergency shell!"
+    exec sh
+}
+mount -t proc proc /proc || {
+    log "ERROR: Failed to mount proc!"
+    log "Dropping to emergency shell!"
+    exec sh
+}
+mount -t sysfs sysfs /sys || {
+    log "ERROR: Failed to mount sysfs!"
+    log "Dropping to emergency shell!"
+    exec sh
+}
 
-echo "[initramfs] Welcome!"
-echo "[initramfs] Kernel cmdline: $(cat /proc/cmdline)"
+log "Welcome to smollinux initramfs!"
+log "Kernel cmdline: $(cat /proc/cmdline)"
 
 bootmode=""
 rootarg=""
@@ -17,101 +36,190 @@ for arg in $(cat /proc/cmdline); do
         root=*)
             rootarg="${arg#root=}"
             ;;
-        boot=live)
-            bootmode="live"
+        boot=*)
+            bootmode="${arg#boot=}"
             ;;
     esac
 done
 
+# Live boot mode
 if [ "$bootmode" = "live" ]; then
-    echo "[initramfs] Detected boot=live mode!"
-
-    echo "[initramfs] Looking for /live/rootfs.squashfs..."
-
-    mkdir -p /mnt
-    mount -t squashfs -o loop /live/rootfs.squashfs /mnt
-    if [ $? -ne 0 ]; then
-        echo "[initramfs] ERROR: Failed to mount squashfs!"
-        echo "[initramfs] Dropping to emergency shell!"
-        exec sh
-    fi
-
-    echo "[initramfs] Contents of new root:"
-    ls /mnt
-
-    echo "[initramfs] Switching root..."
-    exec switch_root /mnt /sbin/init
-
-    echo "[initramfs] ERROR: switch_root failed!"
-    echo "[initramfs] Dropping to emergency shell!"
+    log "Detected boot=live mode"
+    
+    # Support both squashfs and ext4 live images
+    for img_type in squashfs ext4; do
+        img_path="/live/rootfs.$img_type"
+        if [ -f "$img_path" ]; then
+            log "Found live image: $img_path"
+            
+            mkdir -p /mnt
+            case "$img_type" in
+                squashfs)
+                    mount -t squashfs -o loop "$img_path" /mnt
+                    ;;
+                ext4)
+                    mount -o ro "$img_path" /mnt
+                    ;;
+            esac
+            
+            if [ $? -eq 0 ]; then
+                log "Successfully mounted live image"
+                log "Contents of new root:"
+                ls /mnt
+                
+                log "Switching root..."
+                exec switch_root /mnt /sbin/init
+            else
+                log "Failed to mount $img_type image"
+            fi
+        fi
+    done
+    
+    log "ERROR: No valid live image found!"
+    log "Dropping to emergency shell!"
     exec sh
 fi
 
-echo "[initramfs] root= parameter is: $rootarg"
+log "root= parameter: $rootarg"
 
+# Validate root parameter
 if [ -z "$rootarg" ]; then
-    echo "[initramfs] ERROR: No root= argument provided!"
-    echo "[initramfs] Dropping to emergency shell!"
+    log "ERROR: No root= argument provided!"
+    log "Add 'root=/dev/sda1' or similar to kernel command line"
+    log "Dropping to emergency shell!"
     exec sh
 fi
 
-# Resolve device
+# Resolve device from LABEL or UUID
 device=""
 case "$rootarg" in
     LABEL=*|UUID=*)
-        echo "[initramfs] Resolving filesystem specifier..."
-        for i in $(seq 1 10); do
+        log "Resolving $rootarg to device..."
+        timeout=30
+        for i in $(seq 1 $timeout); do
             if echo "$rootarg" | grep -q "^UUID="; then
                 uuidval="${rootarg#UUID=}"
-                device=$(blkid | grep "UUID=\"$uuidval\"" | cut -d: -f1)
+                device=$(blkid | grep -F "UUID=\"$uuidval\"" | cut -d: -f1)
             elif echo "$rootarg" | grep -q "^LABEL="; then
                 labelval="${rootarg#LABEL=}"
-                device=$(blkid | grep "LABEL=\"$labelval\"" | cut -d: -f1)
+                device=$(blkid | grep -F "LABEL=\"$labelval\"" | cut -d: -f1)
             fi
 
             if [ -n "$device" ]; then
-                echo "[initramfs] Found device: $device"
+                log "Found device: $device"
                 break
             fi
 
-            echo "[initramfs] Waiting for blkid to see $rootarg... ($i/10)"
+            if [ $i -eq $timeout ]; then
+                log "ERROR: Timeout waiting for blkid to resolve $rootarg"
+                log "Dropping to emergency shell!"
+                exec sh
+            fi
+            
+            log "Waiting for device resolution... ($i/$timeout)"
+            sleep 1
+        done
+        ;;
+    PARTUUID=*|PARTLABEL=*)
+        # Handle PARTUUID and PARTLABEL
+        log "Resolving $rootarg to device..."
+        timeout=30
+        for i in $(seq 1 $timeout); do
+            if echo "$rootarg" | grep -q "^PARTUUID="; then
+                partuuidval="${rootarg#PARTUUID=}"
+                device=$(blkid | grep -F "PARTUUID=\"$partuuidval\"" | cut -d: -f1)
+            elif echo "$rootarg" | grep -q "^PARTLABEL="; then
+                partlabelval="${rootarg#PARTLABEL=}"
+                device=$(blkid | grep -F "PARTLABEL=\"$partlabelval\"" | cut -d: -f1)
+            fi
+
+            if [ -n "$device" ]; then
+                log "Found device: $device"
+                break
+            fi
+
+            if [ $i -eq $timeout ]; then
+                log "ERROR: Timeout waiting for blkid to resolve $rootarg"
+                log "Dropping to emergency shell!"
+                exec sh
+            fi
+            
+            log "Waiting for device resolution... ($i/$timeout)"
             sleep 1
         done
         ;;
     *)
         device="$rootarg"
+        log "Using direct device path: $device"
         ;;
 esac
 
-echo "[initramfs] Resolved device: $device"
-
-echo "[initramfs] Waiting for $device to appear..."
-for i in $(seq 1 10); do
+# Wait for device to appear
+log "Waiting for $device to appear..."
+timeout=30
+for i in $(seq 1 $timeout); do
     if [ -b "$device" ]; then
-        echo "[initramfs] Found block device $device"
+        log "Found block device $device"
         break
     fi
-    echo "[initramfs] Device $device not ready yet, waiting..."
+    
+    if [ $i -eq $timeout ]; then
+        log "ERROR: Timeout waiting for device $device"
+        log "Dropping to emergency shell!"
+        exec sh
+    fi
+    
+    log "Device $device not ready yet, waiting... ($i/$timeout)"
     sleep 1
 done
 
-# Mount real root
-echo "[initramfs] Mounting $device on /mnt (read-only)..."
-mkdir -p /mnt
-mount -o ro "$device" /mnt
+# Mount real root with multiple filesystem type detection
+log "Detecting filesystem type on $device..."
+fs_type=$(blkid -o value -s TYPE "$device" 2>/dev/null || echo "ext4")
+
+# Common filesystem types
+for fstype in $fs_type ext4 ext3 ext2 xfs btrfs; do
+    if [ -n "$fstype" ]; then
+        log "Trying to mount $device as $fstype (read-only)..."
+        mkdir -p /mnt
+        mount -t "$fstype" -o ro "$device" /mnt 2>/dev/null && {
+            log "Successfully mounted $device as $fstype"
+            break
+        }
+    fi
+done
+
 if [ $? -ne 0 ]; then
-    echo "[initramfs] ERROR: Mount failed!"
-    echo "[initramfs] Dropping to emergency shell!"
+    log "ERROR: Failed to mount $device with any supported filesystem type"
+    log "Available filesystems: $(cat /proc/filesystems | grep -v nodev | tr '\n' ' ')"
+    log "Dropping to emergency shell!"
     exec sh
 fi
 
-echo "[initramfs] Contents of new root:"
+log "Contents of new root:"
 ls /mnt
 
-echo "[initramfs] Switching root..."
-exec switch_root /mnt /sbin/init
+# Check for init system
+if [ ! -x "/mnt/sbin/init" ] && [ ! -x "/mnt/lib/systemd/systemd" ]; then
+    log "ERROR: No init system found in new root!"
+    log "Expected /sbin/init or /lib/systemd/systemd"
+    log "Dropping to emergency shell!"
+    exec sh
+fi
 
-# Fallback emergency shell
-echo "[initramfs] ERROR: switch_root failed!"
-echo "[initramfs] Dropping to emergency shell!"
-exec sh
+log "Switching root..."
+exec switch_root /mnt /sbin/init || {
+    log "ERROR: switch_root failed - trying alternative init paths"
+    
+    # Try alternative init paths
+    for alt_init in /lib/systemd/systemd /sbin/init.static; do
+        if [ -x "/mnt$alt_init" ]; then
+            log "Trying alternative init: $alt_init"
+            exec switch_root /mnt "$alt_init"
+        fi
+    done
+    
+    log "ERROR: All init attempts failed!"
+    log "Dropping to emergency shell!"
+    exec sh
+}

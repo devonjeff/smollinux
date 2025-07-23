@@ -22,7 +22,7 @@ do_build() {
 do_install() {
     install -m 755 busybox "$PKG_INSTALL_DIR/bin/busybox"
 
-    for app in sh mount echo cat switch_root; do
+    for app in sh mount echo cat switch_root mkdir ls seq grep blkid cut sleep; do
         ln -sf busybox "$PKG_INSTALL_DIR/bin/$app"
     done
 }

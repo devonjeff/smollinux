@@ -1,0 +1,29 @@
+PKG_NAME="nano"
+PKG_LATEST_URL="https://ftp.gnu.org/gnu/nano/"
+PKG_MATCH_REGEX="nano-([0-9]+\.[0-9]+(\.[0-9]+)?)\.tar\.xz"
+PKG_TARBALL_TEMPLATE="nano-__VERSION__.tar.xz"
+PKG_DOWNLOAD_URL_TEMPLATE="https://ftp.gnu.org/gnu/nano/__TARBALL__"
+PKG_DIR_NAME="nano-__VERSION__"
+DEPENDS=(ncurses glibc)
+
+do_fetch()     { default_do_fetch; }
+do_extract()   { default_do_extract; }
+
+do_configure() {
+    ./configure \
+        --prefix=/usr \
+        #--sysconfdir=/etc \
+        #--enable-utf8 \
+        #--disable-nls \
+        #--disable-libmagic \
+        #--disable-wrapping-as-root
+}
+
+do_build() {
+    make -j$(nproc)
+}
+
+do_install() {
+    make DESTDIR="$PKG_INSTALL_DIR" install-strip
+    ln -sf nano "$PKG_INSTALL_DIR/usr/bin/gnano"
+}

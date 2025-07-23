@@ -25,6 +25,7 @@ echo "==> [$PKG_NAME] Installing to $ABS_INSTALL_DIR"
 : "${do_install:=:}"
 
 # Initialize cache file
+mkdir -p "$BUILD_DIR"
 CACHE_FILE="$BUILD_DIR/cache.json"
 [ ! -f "$CACHE_FILE" ] && echo "{}" > "$CACHE_FILE"
 
@@ -127,7 +128,12 @@ if [ -z "$source_dir_hash" ] || [ "$source_dir_hash" != "$cached_source_hash" ];
         do_configure
     )
     # Update source hash in cache
-    jq ".[\"$PKG_NAME\"].source_hash = \"$source_dir_hash\"" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+    new_cache_content=$(jq ".[\"$PKG_NAME\"].source_hash = \"$source_dir_hash\"" "$CACHE_FILE" 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        echo "$new_cache_content" > "$CACHE_FILE"
+    else
+        echo "==> [$PKG_NAME] Warning: Failed to update cache file"
+    fi
 else
     echo "==> [$PKG_NAME] Skipping configure (cached)"
 fi

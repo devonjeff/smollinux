@@ -71,5 +71,27 @@ sha256_tree() {
 
 # Add to helpers.sh
 sha256_dir() {
-    find "$1" -type f -exec sha256sum {} + | sort -k 2 | sha256sum | cut -d ' ' -f 1
+    local dir="$1"
+    
+    # Validate input
+    if [ -z "$dir" ]; then
+        echo "!!> [helpers] sha256_dir: Directory not specified"
+        return 1
+    fi
+    
+    # Check if directory exists
+    if [ ! -d "$dir" ]; then
+        echo "0"
+        return 0
+    fi
+    
+    # Calculate hash
+    if hash=$(find "$dir" -type f -exec sha256sum {} + 2>/dev/null | sort -k 2 | sha256sum 2>/dev/null); then
+        echo "$hash" | cut -d ' ' -f 1
+        return 0
+    else
+        echo "!!> [helpers] sha256_dir: Failed to calculate hash for $dir"
+        echo "0"
+        return 1
+    fi
 }

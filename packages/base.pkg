@@ -1,0 +1,22 @@
+PKG_NAME="base"
+
+do_fetch()   { :; }
+do_extract() { :; }
+do_configure() { :; }
+do_build()   { :; }
+
+do_install() {
+    echo "==> [$PKG_NAME] Creating layout at $PKG_INSTALL_DIR"
+    mkdir -p "$PKG_INSTALL_DIR"/{boot,proc,sys,dev,usr,usr/lib,usr/lib64,usr/bin,usr/sbin}
+
+    {
+        cd "$PKG_INSTALL_DIR"
+        ln -s usr/lib lib
+        ln -s usr/lib64 lib64
+        ln -s usr/bin bin
+        ln -s usr/sbin sbin
+    }
+    
+    mknod -m 600 "$PKG_INSTALL_DIR/dev/console" c 5 1
+    mknod -m 666 "$PKG_INSTALL_DIR/dev/null" c 1 3
+}
