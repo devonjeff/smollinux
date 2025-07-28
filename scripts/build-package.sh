@@ -33,7 +33,7 @@ CACHE_FILE="$BUILD_DIR/cache.json"
 if [ "$FORCE_CLEAN" = "1" ]; then
     if [ -f "$CACHE_FILE" ]; then
         echo "==> [$PKG_NAME] Clearing cache entry for this package"
-        jq "del(.$PKG_NAME)" "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+        jq --arg key "$PKG_NAME" 'del( .[$key] )' "$CACHE_FILE" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
     else
         echo "==> [$PKG_NAME] Cache file not found, creating new one"
         echo "{}" > "$CACHE_FILE"

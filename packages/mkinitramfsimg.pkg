@@ -16,7 +16,7 @@ do_install() {
 
     echo "==> [mkinitramfsimg] Packing $BUILD_TARGET into initramfs.cpio.gz"
     (
-        cd "$BASE_DIR/$BUILD_TARGET"
+        cd "$BUILD_TARGET"
         find . -print0 | cpio --null -ov --format=newc 2>/dev/null \
           | gzip -9 > "$BUILD_DIR/initramfs.cpio.gz"
     )

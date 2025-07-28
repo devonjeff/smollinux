@@ -35,7 +35,7 @@ echo "==> [clean] Starting cleanup process"
 SUCCESS=true
 
 # Remove directories one by one with error handling
-for dir in "$ROOTFS_DIR" "$INITRAMFS_DIR" "$TEMP_DIR" "$SOURCES_DIR"; do
+for dir in "$ROOTFS_DIR" "$INITRAMFS_DIR" "$TEMP_DIR" ; do
     if [ -n "$dir" ]; then
         if ! safe_rm "$dir"; then
             SUCCESS=false
@@ -45,6 +45,9 @@ done
 
 # Note about BUILD_DIR - preserved to maintain build cache
 echo "==> [clean] Note: BUILD_DIR is preserved to maintain build cache (cache.json)"
+
+# Note about SOURCES_DIR - preserved to not rebuild packages
+echo "==> [clean] Note: SOURCES_DIR is preserved to not extract, configure, and build packages again"
 
 if [ "$SUCCESS" = "true" ]; then
     echo "==> [clean] Cleanup completed successfully"
